@@ -57,9 +57,70 @@ public class StorageApiController implements StorageApi {
         String accept = request.getHeader("Accept");
         if (accept != null && accept.contains("application/json")) {
             try {
-                String queue = new String();
-                if(companyID != -1) {
-                    queue += "SELECT productid,\n" +
+                String suffix = new String();
+
+                boolean where = false;
+                if(productID != null){
+                    if(!where){
+                        where = true;
+                        suffix += "WHERE ";
+                    }
+                    else{
+                        suffix += " AND ";
+                    }
+
+                    suffix += "\nproductid == " + productID;
+                }
+                if(count != null){
+                    if(!where){
+                        where = true;
+                        suffix += "WHERE ";
+                    }
+                    else{
+                        suffix += " AND ";
+                    }
+
+                    suffix += "\ncount >= " + count;
+                }
+                if(minPrice != null){
+                    if(!where){
+                        where = true;
+                        suffix += "WHERE ";
+                    }
+                    else{
+                        suffix += " AND ";
+                    }
+
+                    suffix += "\nprice >= " + minPrice;
+                }
+                if(maxPrice != null){
+                    if(!where){
+                        where = true;
+                        suffix += "WHERE ";
+                    }
+                    else{
+                        suffix += " AND ";
+                    }
+
+                    suffix += "\nprice <= " + maxPrice;
+                }
+                if(name != null){
+                    if(!where){
+                        where = true;
+                        suffix += "WHERE ";
+                    }
+                    else{
+                        suffix += " AND ";
+                    }
+
+                    suffix += "\nname == " + name;
+                }
+                suffix += ";";
+                // Making suffix for request
+
+                String prefix = new String();
+                if(companyID != null) {
+                    prefix += "SELECT productid,\n" +
                             "       photo,\n" +
                             "       name,\n" +
                             "       count,\n" +
@@ -68,75 +129,31 @@ public class StorageApiController implements StorageApi {
                             "FROM [" + companyID + "]";
                 }
                 else{
-                    // TODO: searching in all tables
+                    DataBase.statement.get(0).execute("SELECT name FROM sqlite_master WHERE type='table';");
+                    ResultSet rs = DataBase.statement.get(0).getResultSet();
+                    prefix += "SELECT ";
+                    String END = new String();
+                    END = "FROM ";
+                    while(rs.next()) {
+                        prefix += "[" + rs.getString("name") + "].productid,\n" +
+                                "[" + rs.getString("name") + "].photo,\n" +
+                                "[" + rs.getString("name") + "].name,\n" +
+                                "[" + rs.getString("name") + "].count,\n" +
+                                "[" + rs.getString("name") + "].description,\n" +
+                                "[" + rs.getString("name") + "].price ,";
+                        END += "[" + rs.getString("name") + "],";
+                    }
+                    prefix = prefix.substring(0, prefix.length() - 1);
+                    END = END.substring(0, END.length() - 1);
+                    prefix += END;
                 }
 
-                boolean where = false;
-                if(productID != null){
-                    if(!where){
-                        where = true;
-                        queue += "WHERE ";
-                    }
-                    else{
-                        queue += " AND ";
-                    }
-
-                    queue += "\nproductid == " + productID;
-                }
-                if(count != null){
-                    if(!where){
-                        where = true;
-                        queue += "WHERE ";
-                    }
-                    else{
-                        queue += " AND ";
-                    }
-
-                    queue += "\ncount >= " + count;
-                }
-                if(minPrice != null){
-                    if(!where){
-                        where = true;
-                        queue += "WHERE ";
-                    }
-                    else{
-                        queue += " AND ";
-                    }
-
-                    queue += "\nprice >= " + minPrice;
-                }
-                if(maxPrice != null){
-                    if(!where){
-                        where = true;
-                        queue += "WHERE ";
-                    }
-                    else{
-                        queue += " AND ";
-                    }
-
-                    queue += "\nprice <= " + maxPrice;
-                }
-                if(name != null){
-                    if(!where){
-                        where = true;
-                        queue += "WHERE ";
-                    }
-                    else{
-                        queue += " AND ";
-                    }
-
-                    queue += "\nname == " + name;
-                }
-                queue += ";";
-
-                System.out.println(queue);
-                DataBase.statement.get(0).execute(queue);
+                DataBase.statement.get(0).execute(prefix + suffix);
                 ResultSet rs = DataBase.statement.get(0).getResultSet();
                 String result = new String();
 
                 result += "{\"products\": [\n";
-
-                while (rs != null && !rs.isClosed()) {
+                while (rs != null && rs.next()) { // TODO: Test with much data
                     result += "{\n";
                     result += "\"name\": \"" + rs.getString("name") + "\",\n";
                     result += "\"companyid\": " + companyID + ",\n";
@@ -146,10 +163,9 @@ public class StorageApiController implements StorageApi {
                     result += "\"productid\": " + rs.getString("productid") + ",\n";
                     result += "\"Photo\": \"" + rs.getString("photo") + "\"\n";
                     result += "}\n";
-                    if(rs.next()) {
-                        result += ",";
-                    }
+                    result += ",";
                 }
+                result = result.substring(0, result.length() - 1);
                 result += "]\n}";
                 return new ResponseEntity<InlineResponse200>(objectMapper.readValue(result, InlineResponse200.class), HttpStatus.OK);
             } catch (Exception e) {
@@ -164,7 +180,9 @@ public class StorageApiController implements StorageApi {
     public ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "CompanyID" ,required=true,schema=@Schema()) @RequestHeader(value="CompanyID", required=true) Integer companyID,@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password,@Parameter(in = ParameterIn.HEADER, description = "serverAddress" ,required=true,schema=@Schema()) @RequestHeader(value="serverAddress", required=true) String serverAddress) {
         String accept = request.getHeader("Accept");
         try {
-            DataBase.statement.get(1).execute("SELECT " + companyID + " FROM companies;");
+            DataBase.statement.get(1).execute("SELECT companyid,\n" +
+                    "       password,\n" +
+                    "       serverAddress FROM companies WHERE companyid == " + companyID + ";");
             ResultSet rs = DataBase.statement.get(1).getResultSet();
 
             if(!rs.next()){
