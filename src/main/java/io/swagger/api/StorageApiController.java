@@ -1,6 +1,8 @@
 package io.swagger.api;
 
+import com.fasterxml.jackson.core.JsonParser;
 import io.swagger.model.InlineResponse200;
+import io.swagger.model.Product;
 import io.swagger.model.StorageBody;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.constraints.*;
 import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.util.List;
@@ -54,8 +57,59 @@ public class StorageApiController implements StorageApi {
         String accept = request.getHeader("Accept");
         if (accept != null && accept.contains("application/json")) {
             try {
-                return new ResponseEntity<InlineResponse200>(objectMapper.readValue("{\n  \"products\" : [ {\n    \"companyid\" : 0.8008281904610115,\n    \"productid\" : 6.027456183070403,\n    \"price\" : 1.4658129805029452,\n    \"name\" : \"name\",\n    \"count\" : 5.962133916683182,\n    \"description\" : \"description\",\n    \"Photo\" : \"Photo\"\n  }, {\n    \"companyid\" : 0.8008281904610115,\n    \"productid\" : 6.027456183070403,\n    \"price\" : 1.4658129805029452,\n    \"name\" : \"name\",\n    \"count\" : 5.962133916683182,\n    \"description\" : \"description\",\n    \"Photo\" : \"Photo\"\n  } ]\n}", InlineResponse200.class), HttpStatus.NOT_IMPLEMENTED);
-            } catch (IOException e) {
+                String queue = new String();
+                if(companyID != -1) {
+                    queue += "SELECT productid,\n" +
+                            "       photo,\n" +
+                            "       name,\n" +
+                            "       count,\n" +
+                            "       description,\n" +
+                            "       price " +
+                            "FROM [" + companyID + "]";
+                }
+                else{
+                    // TODO: searching in all tables
+                }
+                if(productID != null && Integer.getInteger(productID) != -1){
+                    queue += "\nWHERE productid == " + productID;
+                }
+                if(count != null && Integer.getInteger(count) != -1){
+                    queue += "\nWHERE count >= " + count;
+                }
+                if(minPrice != null && Integer.getInteger(minPrice) != -1){
+                    queue += "\nWHERE price >= " + minPrice;
+                }
+                if(maxPrice != null && Integer.getInteger(maxPrice) != -1){
+                    queue += "\nWHERE price <= " + maxPrice;
+                }
+                if(name != null){
+                    queue += "\nWHERE name == " + name;
+                }
+                queue += ";";
+
+                DataBase.statement.get(0).execute(queue);
+                ResultSet rs = DataBase.statement.get(0).getResultSet();
+                String result = new String();
+
+                result += "{\"products\": [\n";
+
+                while (rs != null && !rs.isClosed()) {
+                    result += "{\n";
+                    result += "\"name\": \"" + rs.getString("name") + "\",\n";
+                    result += "\"companyid\": " + companyID + ",\n";
+                    result += "\"count\": " + rs.getString("count") + ",\n";
+                    result += "\"description\": \"" + rs.getString("description") + "\",\n";
+                    result += "\"price\": " + rs.getString("price") + ",\n";
+                    result += "\"productid\": " + rs.getString("productid") + ",\n";
+                    result += "\"Photo\": \"" + rs.getString("photo") + "\"\n";
+                    result += "}\n";
+                    if(rs.next()) {
+                        result += ",";
+                    }
+                }
+                result += "]\n}";
+                return new ResponseEntity<InlineResponse200>(objectMapper.readValue(result, InlineResponse200.class), HttpStatus.OK);
+            } catch (Exception e) {
                 log.error("Couldn't serialize response for content type application/json", e);
                 return new ResponseEntity<InlineResponse200>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -67,26 +121,11 @@ public class StorageApiController implements StorageApi {
     public ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "CompanyID" ,required=true,schema=@Schema()) @RequestHeader(value="CompanyID", required=true) Integer companyID,@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password,@Parameter(in = ParameterIn.HEADER, description = "serverAddress" ,required=true,schema=@Schema()) @RequestHeader(value="serverAddress", required=true) String serverAddress) {
         String accept = request.getHeader("Accept");
         try {
-            System.out.println("0");
-            DataBase.statement.get(1).execute("SELECT " + companyID + " from sqlite_master where type= \"table\";");
-            System.out.println("1");
+            DataBase.statement.get(1).execute("SELECT " + companyID + " FROM companies;");
             ResultSet rs = DataBase.statement.get(1).getResultSet();
-            System.out.println("2");
 
-            if(rs.next()){
-                System.out.println("3");
-                DataBase.statement.get(1).execute("INSERT INTO companies (\n" +
-                        "                          password,\n" +
-                        "                          serverAddress\n" +
-                        "                      )\n" +
-                        "                      VALUES (\n" +
-                        "                          '" + password + "',\n" +
-                        "                          '" + serverAddress + "'\n" +
-                        "                      );\n");
-
-                System.out.println("4");
-                DataBase.addCompany(companyID);
-                System.out.println("5");
+            if(!rs.next()){
+                DataBase.registerCompany(companyID, password, serverAddress);
                 return new ResponseEntity<Void>(HttpStatus.CREATED);
             }
             else{
@@ -99,8 +138,31 @@ public class StorageApiController implements StorageApi {
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<Void> putCompany(@Parameter(in = ParameterIn.HEADER, description = "Company ID" ,required=true,schema=@Schema()) @RequestHeader(value="Company ID", required=true) Integer companyID,@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password,@Parameter(in = ParameterIn.DEFAULT, description = "", schema=@Schema()) @Valid @RequestBody StorageBody body) {
+    public ResponseEntity<Void> putCompany(@Parameter(in = ParameterIn.HEADER, description = "CompanyID" ,required=true,schema=@Schema()) @RequestHeader(value="CompanyID", required=true) Integer companyID,@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password,@Parameter(in = ParameterIn.DEFAULT, description = "", schema=@Schema()) @Valid @RequestBody StorageBody body) {
         String accept = request.getHeader("Accept");
+
+        try {
+            DataBase.statement.get(1).execute("SELECT companyid,\n" +
+                    "       password,\n" +
+                    "       serverAddress\n" +
+                    "  FROM companies WHERE companyid = " + companyID + ";");
+
+            ResultSet rs = DataBase.statement.get(1).getResultSet();
+
+            if (rs.getString("password").equals(password)) {
+                List<Product> productList = body.getProducts();
+                for(Product product : productList){
+                    DataBase.replaceProduct(companyID, product);
+                }
+                return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
+            }
+            else{
+                return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
     }
 
