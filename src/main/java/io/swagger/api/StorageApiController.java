@@ -70,23 +70,66 @@ public class StorageApiController implements StorageApi {
                 else{
                     // TODO: searching in all tables
                 }
-                if(productID != null && Integer.getInteger(productID) != -1){
-                    queue += "\nWHERE productid == " + productID;
+
+                boolean where = false;
+                if(productID != null){
+                    if(!where){
+                        where = true;
+                        queue += "WHERE ";
+                    }
+                    else{
+                        queue += " AND ";
+                    }
+
+                    queue += "\nproductid == " + productID;
                 }
-                if(count != null && Integer.getInteger(count) != -1){
-                    queue += "\nWHERE count >= " + count;
+                if(count != null){
+                    if(!where){
+                        where = true;
+                        queue += "WHERE ";
+                    }
+                    else{
+                        queue += " AND ";
+                    }
+
+                    queue += "\ncount >= " + count;
                 }
-                if(minPrice != null && Integer.getInteger(minPrice) != -1){
-                    queue += "\nWHERE price >= " + minPrice;
+                if(minPrice != null){
+                    if(!where){
+                        where = true;
+                        queue += "WHERE ";
+                    }
+                    else{
+                        queue += " AND ";
+                    }
+
+                    queue += "\nprice >= " + minPrice;
                 }
-                if(maxPrice != null && Integer.getInteger(maxPrice) != -1){
-                    queue += "\nWHERE price <= " + maxPrice;
+                if(maxPrice != null){
+                    if(!where){
+                        where = true;
+                        queue += "WHERE ";
+                    }
+                    else{
+                        queue += " AND ";
+                    }
+
+                    queue += "\nprice <= " + maxPrice;
                 }
                 if(name != null){
-                    queue += "\nWHERE name == " + name;
+                    if(!where){
+                        where = true;
+                        queue += "WHERE ";
+                    }
+                    else{
+                        queue += " AND ";
+                    }
+
+                    queue += "\nname == " + name;
                 }
                 queue += ";";
 
+                System.out.println(queue);
                 DataBase.statement.get(0).execute(queue);
                 ResultSet rs = DataBase.statement.get(0).getResultSet();
                 String result = new String();
