@@ -153,7 +153,7 @@ public class StorageApiController implements StorageApi {
                 String result = new String();
 
                 result += "{\"products\": [\n";
-                while (rs != null && rs.next()) { // TODO: Test with much data
+                while (rs != null && rs.next()) {
                     result += "{\n";
                     result += "\"name\": \"" + rs.getString("name") + "\",\n";
                     result += "\"companyid\": " + companyID + ",\n";
