@@ -131,17 +131,16 @@ public class OrderApiController implements OrderApi {
                 ResultSet rs = DataBase.statement.get(1).getResultSet();
 
                 while (rs.next()) {
-                    System.out.println("TEST");
                     String address = rs.getString("serverAddress");
                     log.println("Try to connect to server socket on " + address);
 
                     URL url = new URL (address);
                     HttpURLConnection con = (HttpURLConnection)url.openConnection();
-                    con.setRequestMethod("POST");
                     con.setRequestProperty("User-Agent", "ShopOwnerApplication");
-                    con.setRequestProperty("Content-type", "application/json");
+                    con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
                     con.setDoOutput(true);
                     con.setDoInput(true);
+                    con.setRequestMethod("POST");
 
                     PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(con.getOutputStream())), true);
                     out.println(JSONUtility.UserToJson(body, rs.getInt("companyid")).toString());

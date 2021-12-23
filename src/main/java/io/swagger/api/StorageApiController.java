@@ -5,6 +5,7 @@ import io.swagger.model.InlineResponse200;
 import io.swagger.model.Product;
 import io.swagger.model.StorageBody;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.models.auth.In;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -14,6 +15,8 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -34,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.sql.ResultSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -53,128 +57,68 @@ public class StorageApiController implements StorageApi {
         this.request = request;
     }
 
-    public ResponseEntity<InlineResponse200> getCompany(@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="CompanyID", required=false) Integer companyID,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="name", required=false) String name,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="minPrice", required=false) String minPrice,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="maxPrice", required=false) String maxPrice,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="count", required=false) String count,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="productID", required=false) String productID) {
+    public ResponseEntity<InlineResponse200> getCompany(@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="CompanyID", required=false) Integer companyID,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="name", required=false) String name,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="minPrice", required=false) Integer minPrice,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="maxPrice", required=false) Integer maxPrice,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="count", required=false) Integer count,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="productID", required=false) Integer productID) {
         String accept = request.getHeader("Accept");
         if (accept != null && accept.contains("application/json")) {
             try {
-                String suffix = new String();
+                StringBuilder sb = new StringBuilder();
+                sb.append("SELECT name FROM sqlite_master WHERE type='table'");
+                if(companyID != null) sb.append(" AND name = [" + companyID + "]");
+                sb.append(";");
 
-                boolean where = false;
-                if(productID != null){
-                    if(!where){
-                        where = true;
-                        suffix += "WHERE ";
-                    }
-                    else{
-                        suffix += " AND ";
-                    }
-
-                    suffix += "\nproductid == " + productID;
-                }
-                if(count != null){
-                    if(!where){
-                        where = true;
-                        suffix += "WHERE ";
-                    }
-                    else{
-                        suffix += " AND ";
-                    }
-
-                    suffix += "\ncount >= " + count;
-                }
-                if(minPrice != null){
-                    if(!where){
-                        where = true;
-                        suffix += "WHERE ";
-                    }
-                    else{
-                        suffix += " AND ";
-                    }
-
-                    suffix += "\nprice >= " + minPrice;
-                }
-                if(maxPrice != null){
-                    if(!where){
-                        where = true;
-                        suffix += "WHERE ";
-                    }
-                    else{
-                        suffix += " AND ";
-                    }
-
-                    suffix += "\nprice <= " + maxPrice;
-                }
-                if(name != null){
-                    if(!where){
-                        where = true;
-                        suffix += "WHERE ";
-                    }
-                    else{
-                        suffix += " AND ";
-                    }
-
-                    suffix += "\nname == " + name;
-                }
-                suffix += ";";
-                // Making suffix for request
-
-                String prefix = new String();
-                if(companyID != null) {
-                    prefix += "SELECT productid,\n" +
-                            "       photo,\n" +
-                            "       name,\n" +
-                            "       count,\n" +
-                            "       description,\n" +
-                            "       price " +
-                            "FROM [" + companyID + "]";
-                }
-                else{
-                    DataBase.statement.get(0).execute("SELECT name FROM sqlite_master WHERE type='table';");
-                    ResultSet rs = DataBase.statement.get(0).getResultSet();
-                    prefix += "SELECT ";
-                    String END = new String();
-                    END = "FROM ";
-                    while(rs.next()) {
-                        prefix += "[" + rs.getString("name") + "].productid,\n" +
-                                "[" + rs.getString("name") + "].photo,\n" +
-                                "[" + rs.getString("name") + "].name,\n" +
-                                "[" + rs.getString("name") + "].count,\n" +
-                                "[" + rs.getString("name") + "].description,\n" +
-                                "[" + rs.getString("name") + "].price ,";
-                        END += "[" + rs.getString("name") + "],";
-                    }
-                    prefix = prefix.substring(0, prefix.length() - 1);
-                    END = END.substring(0, END.length() - 1);
-                    prefix += END;
-                }
-
-                DataBase.statement.get(0).execute(prefix + suffix);
+                DataBase.statement.get(0).execute(sb.toString());
                 ResultSet rs = DataBase.statement.get(0).getResultSet();
-                String result = new String();
 
-                result += "{\"products\": [\n";
-                while (rs != null && rs.next()) {
-                    result += "{\n";
-                    result += "\"name\": \"" + rs.getString("name") + "\",\n";
-                    result += "\"companyid\": " + companyID + ",\n";
-                    result += "\"count\": " + rs.getString("count") + ",\n";
-                    result += "\"description\": \"" + rs.getString("description") + "\",\n";
-                    result += "\"price\": " + rs.getString("price") + ",\n";
-                    result += "\"productid\": " + rs.getString("productid") + ",\n";
-                    result += "\"Photo\": \"" + rs.getString("photo") + "\"\n";
-                    result += "}\n";
-                    result += ",";
+                JSONObject result = new JSONObject();
+                JSONArray products = new JSONArray();
+
+                List<Integer> companyIDs = new LinkedList<>();
+
+                while(rs.next()) {
+                    companyIDs.add(rs.getInt("name"));
                 }
-                result = result.substring(0, result.length() - 1);
-                result += "]\n}";
-                return new ResponseEntity<InlineResponse200>(objectMapper.readValue(result, InlineResponse200.class), HttpStatus.OK);
+
+                var iter = companyIDs.listIterator();
+                while(iter.hasNext()){
+                    Integer table_name = iter.next();
+
+                    StringBuilder stringBuilder = new StringBuilder();
+                    stringBuilder.append("SELECT * FROM [" + table_name + "]");
+                    if(productID != null || count != null || minPrice != null || maxPrice != null || name != null) stringBuilder.append(" WHERE ");
+                    if(productID != null) stringBuilder.append(" productID = " + productID + " AND");
+                    if(count != null) stringBuilder.append(" count >= " + count + " AND");
+                    if(minPrice != null) stringBuilder.append(" price >= " + minPrice + " AND");
+                    if(maxPrice != null) stringBuilder.append(" price <= " + maxPrice + " AND");
+                    if(name != null) stringBuilder.append(" name = '" + name + "' AND");
+                    if(productID != null || count != null || minPrice != null || maxPrice != null || name != null) stringBuilder.delete(stringBuilder.length() - 3, stringBuilder.length());
+                    stringBuilder.append(";");
+
+                    DataBase.statement.get(0).execute(stringBuilder.toString());
+                    ResultSet resultSet = DataBase.statement.get(0).getResultSet();
+
+                    while(resultSet.next()) {
+                        JSONObject product = new JSONObject();
+                        product.put("name", rs.getString("name"));
+                        product.put("count", rs.getString("count"));
+                        product.put("description", rs.getString("description"));
+                        product.put("price", rs.getString("price"));
+                        product.put("productid", rs.getString("productid"));
+                        product.put("companyid", table_name);
+                        product.put("Photo", rs.getString("Photo"));
+                        products.add(product);
+                    }
+                }
+
+                result.put("products", products);
+
+                return new ResponseEntity<InlineResponse200>(objectMapper.readValue(result.toString(), InlineResponse200.class), HttpStatus.OK);
             } catch (Exception e) {
+                e.printStackTrace();
                 log.error("Couldn't serialize response for content type application/json", e);
                 return new ResponseEntity<InlineResponse200>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
-
-        return new ResponseEntity<InlineResponse200>(HttpStatus.NOT_IMPLEMENTED);
+        return new ResponseEntity<InlineResponse200>(HttpStatus.BAD_REQUEST);
     }
 
     public ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "CompanyID" ,required=true,schema=@Schema()) @RequestHeader(value="CompanyID", required=true) Integer companyID,@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password,@Parameter(in = ParameterIn.HEADER, description = "serverAddress" ,required=true,schema=@Schema()) @RequestHeader(value="serverAddress", required=true) String serverAddress) {
