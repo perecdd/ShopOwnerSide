@@ -139,6 +139,8 @@ public class OrderApiController implements OrderApi {
                 productString.append("]");
 
                 DataBase.statement.execute("INSERT INTO tickets (\n" +
+                        "                          status,\n" +
+                        "                          password,\n" +
                         "                          email,\n" +
                         "                          name,\n" +
                         "                          surname,\n" +
@@ -154,6 +156,8 @@ public class OrderApiController implements OrderApi {
                         "                          products\n" +
                         "                      )\n" +
                         "                      VALUES (\n" +
+                        "                          'Ordered',\n" +
+                        "                          '" + body.getPassword() + "',\n" +
                         "                          '" + body.getEmail() + "',\n" +
                         "                          '" + body.getName() + "',\n" +
                         "                          '" + body.getSurname() + "',\n" +
@@ -174,49 +178,6 @@ public class OrderApiController implements OrderApi {
             e.printStackTrace();
             return new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        /*List<Product> productList = body.getBasket();
-        String request = new String();
-        request = "SELECT companyid, serverAddress FROM companies WHERE";
-        for(Product product : productList){
-            request += " companyid == " + product.getCompanyid();
-            request += " OR";
-        }
-        request = request.substring(0, request.length() - 2);
-        request += ";";
-
-        try {
-            DataBase.statement.get(1).execute(request);
-            ResultSet rs = DataBase.statement.get(1).getResultSet();
-
-            while (rs.next()) {
-                String address = rs.getString("serverAddress");
-
-                URL url = new URL(address + "/order");
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestProperty("User-Agent", "ShopOwnerApplication");
-                con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                con.setDoOutput(true);
-                con.setDoInput(true);
-                con.setRequestMethod("POST");
-
-                PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(con.getOutputStream())), true);
-                out.println(JSONUtility.UserToJson(body, rs.getInt("companyid")).toString());
-
-                int responseCode = con.getResponseCode();
-
-                if (responseCode != 200) {
-                    log.error("An error occurred when sending data to the address " + address);
-                }
-
-                out.close();
-                con.disconnect();
-            }
-        }
-        catch (Exception e){
-            e.printStackTrace();
-            return new ResponseEntity<Void>(HttpStatus.FORBIDDEN);
-        }*/
         return new ResponseEntity<Void>(HttpStatus.CREATED);
     }
 }

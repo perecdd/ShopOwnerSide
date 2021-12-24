@@ -45,10 +45,12 @@ public class DataBase {
                 "LANGUAGE plpgsql;");
 
         statement.execute("CREATE TABLE IF NOT EXISTS tickets (\n" +
+                "    id     SERIAL PRIMARY KEY,\n" +
+                "    status     TEXT,\n" +
                 "    companyid     INTEGER,\n" +
                 "    userid      INTEGER,\n" +
-                "    email   TEXT\n" +
-                "                    NOT NULL,\n" +
+                "    email   TEXT NOT NULL,\n" +
+                "    password   TEXT NOT NULL,\n" +
                 "    name    TEXT  NOT NULL,\n" +
                 "    surname TEXT  NOT NULL,\n" +
                 "    phone   TEXT,\n" +

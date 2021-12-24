@@ -43,6 +43,9 @@ public class User   {
   @JsonProperty("email")
   private String email = null;
 
+  @JsonProperty("password")
+  private String password = null;
+
   public User name(String name) {
     this.name = name;
     return this;
@@ -190,6 +193,20 @@ public class User   {
     this.email = email;
   }
 
+  /**
+   * Get password
+   * @return password
+   **/
+  @Schema(required = true, description = "")
+  @NotNull
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String email) {
+    this.password = password;
+  }
 
   @Override
   public boolean equals(java.lang.Object o) {
@@ -206,12 +223,13 @@ public class User   {
         Objects.equals(this.address, user.address) &&
         Objects.equals(this.id, user.id) &&
         Objects.equals(this.phone, user.phone) &&
-        Objects.equals(this.email, user.email);
+        Objects.equals(this.email, user.email) &&
+        Objects.equals(this.password, user.password);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, surname, basket, address, id, phone, email);
+    return Objects.hash(name, surname, basket, address, id, phone, email, password);
   }
 
   @Override
@@ -226,6 +244,7 @@ public class User   {
     sb.append("    id: ").append(toIndentedString(id)).append("\n");
     sb.append("    phone: ").append(toIndentedString(phone)).append("\n");
     sb.append("    email: ").append(toIndentedString(email)).append("\n");
+    sb.append("    password: ").append(toIndentedString(password)).append("\n");
     sb.append("}");
     return sb.toString();
   }
