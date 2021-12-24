@@ -55,7 +55,7 @@ public interface StorageApi {
         @ApiResponse(responseCode = "400", description = "Bad Request") })
     @RequestMapping(value = "/storage",
         method = RequestMethod.POST)
-    ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "CompanyID" ,required=true,schema=@Schema()) @RequestHeader(value="CompanyID", required=true) Integer companyID, @Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "serverAddress" ,required=true,schema=@Schema()) @RequestHeader(value="serverAddress", required=true) String serverAddress);
+    ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "CompanyID" ,required=true,schema=@Schema()) @RequestHeader(value="CompanyID", required=true) Integer companyID, @Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password);
 
 
     @Operation(summary = "", description = "Update product information/count", tags={  })

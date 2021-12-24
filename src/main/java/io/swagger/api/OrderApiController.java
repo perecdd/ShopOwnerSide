@@ -1,9 +1,11 @@
 package io.swagger.api;
 
 import io.swagger.model.Address;
+import io.swagger.model.Company;
 import io.swagger.model.Product;
 import io.swagger.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.models.auth.In;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -41,10 +43,8 @@ import java.net.URLConnection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import io.swagger.api.DataBase;
 
 class JSONUtility {
@@ -111,7 +111,53 @@ public class OrderApiController implements OrderApi {
 
     public ResponseEntity<Void> postOrder(@Parameter(in = ParameterIn.DEFAULT, description = "Give all information about user to company", schema=@Schema()) @Valid @RequestBody User body) {
         String accept = request.getHeader("Accept");
-        List<Product> productList = body.getBasket();
+
+        try {
+            List<Product> productList = body.getBasket();
+            Map<Integer, List<Product>> sortedProducts = new HashMap<>();
+
+            var iter = productList.listIterator();
+            while (iter.hasNext()) {
+                Product product = iter.next();
+                if (!sortedProducts.containsKey(product.getCompanyid())) {
+                    sortedProducts.put(product.getCompanyid().intValue(), new ArrayList<>());
+                }
+                sortedProducts.get(product.getCompanyid().intValue()).add(product);
+            }
+
+            for (Map.Entry<Integer, List<Product>> entry : sortedProducts.entrySet()) {
+                Integer key = entry.getKey();
+                List<Product> value = entry.getValue();
+
+                StringBuilder productString = new StringBuilder();
+                productString.append("ARRAY[");
+
+                //PRODUCT AS (name TEXT, photo TEXT, companyid integer, productid integer, price integer, count integer, description TEXT);
+
+                for (Product product : value) {
+                    productString.append("('" + product.getName() + "', '" + product.getPhoto() + "', " + product.getCompanyid() + ", " + product.getProductid() + ", " + product.getPrice() + ", " + product.getCount() + ", '" + product.getDescription() + "')::PRODUCT,");
+                }
+                productString.delete(productString.length() - 1, productString.length());
+                productString.append("]");
+
+                DataBase.statement.execute("INSERT INTO tickets (\n" +
+                        "                          companyID,\n" +
+                        "                          userid,\n" +
+                        "                          products\n" +
+                        "                      )\n" +
+                        "                      VALUES (\n" +
+                        "                          '" + key + "',\n" +
+                        "                          '" + body.getId() + "',\n" +
+                        "                          " + productString.toString() + "\n" +
+                        "                      );\n");
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        /*List<Product> productList = body.getBasket();
         String request = new String();
         request = "SELECT companyid, serverAddress FROM companies WHERE";
         for(Product product : productList){
@@ -122,53 +168,37 @@ public class OrderApiController implements OrderApi {
         request += ";";
 
         try {
-            Date date = new Date() ;
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss") ;
-            PrintWriter log = new PrintWriter(new File(dateFormat.format(date) + ".txt"), "UTF-8");
+            DataBase.statement.get(1).execute(request);
+            ResultSet rs = DataBase.statement.get(1).getResultSet();
 
-            try {
-                DataBase.statement.get(1).execute(request);
-                ResultSet rs = DataBase.statement.get(1).getResultSet();
+            while (rs.next()) {
+                String address = rs.getString("serverAddress");
 
-                while (rs.next()) {
-                    String address = rs.getString("serverAddress");
-                    log.println("Try to connect to server socket on " + address);
+                URL url = new URL(address + "/order");
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestProperty("User-Agent", "ShopOwnerApplication");
+                con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                con.setDoOutput(true);
+                con.setDoInput(true);
+                con.setRequestMethod("POST");
 
-                    URL url = new URL (address);
-                    HttpURLConnection con = (HttpURLConnection)url.openConnection();
-                    con.setRequestProperty("User-Agent", "ShopOwnerApplication");
-                    con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                    con.setDoOutput(true);
-                    con.setDoInput(true);
-                    con.setRequestMethod("POST");
+                PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(con.getOutputStream())), true);
+                out.println(JSONUtility.UserToJson(body, rs.getInt("companyid")).toString());
 
-                    PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(con.getOutputStream())), true);
-                    out.println(JSONUtility.UserToJson(body, rs.getInt("companyid")).toString());
+                int responseCode = con.getResponseCode();
 
-                    int responseCode = con.getResponseCode();
-                    System.out.println(responseCode);
-
-                    if(responseCode == 200){
-                        log.println("successfully sent a request to the address " + address);
-                    }
-                    else{
-                        log.println("An error occurred when sending data to the address " + address);
-                    }
-
-                    out.close();
-                    con.disconnect();
+                if (responseCode != 200) {
+                    log.error("An error occurred when sending data to the address " + address);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                log.println("Data transmission has failed");
-                return new ResponseEntity<Void>(HttpStatus.FORBIDDEN);
-            } finally {
-                log.close();
+
+                out.close();
+                con.disconnect();
             }
         }
         catch (Exception e){
             e.printStackTrace();
-        }
+            return new ResponseEntity<Void>(HttpStatus.FORBIDDEN);
+        }*/
         return new ResponseEntity<Void>(HttpStatus.CREATED);
     }
 }

@@ -6,42 +6,66 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class DataBase {
-    public static ArrayList<Connection> connection = new ArrayList<>();
-    public static ArrayList<Statement> statement = new ArrayList<>();
-    public static ArrayList<ResultSet> resultSet = new ArrayList<>();
+    public static Connection connection;
+    public static Statement statement;
 
     public DataBase() throws Exception {
-        Class.forName("org.sqlite.JDBC");
+        Class.forName("org.postgresql.Driver");
 
-        connection.add(DriverManager.getConnection("jdbc:sqlite:storage"));
-        statement.add(connection.get(0).createStatement());
+        StringBuilder url = new StringBuilder();
+        url.
+                append("jdbc:postgresql://").  //db type
+                append("postgres:").          //host name
+                append("5432/").               //port
+                append("postgres?").             //db name
+                append("user=postgres&").      //login
+                append("password=postgres");     //password
 
-        connection.add(DriverManager.getConnection("jdbc:sqlite:companyDB"));
-        statement.add(connection.get(1).createStatement());
+        connection = DriverManager.getConnection(url.toString());
+        statement = connection.createStatement();
 
-        statement.get(1).execute("CREATE TABLE IF NOT EXISTS companies (\n" +
+        statement.execute("CREATE TABLE IF NOT EXISTS companies (\n" +
                 "    companyid     INTEGER,\n" +
-                "    password      STRING,\n" +
-                "    serverAddress STRING\n" +
-                ");\n");
+                "    password      TEXT\n" +
+                ");");
+
+        statement.execute("DO\n" +
+                "$$\n" +
+                "BEGIN\n" +
+                "  IF NOT EXISTS (SELECT *\n" +
+                "                        FROM pg_type typ\n" +
+                "                             INNER JOIN pg_namespace nsp\n" +
+                "                                        ON nsp.oid = typ.typnamespace\n" +
+                "                        WHERE nsp.nspname = current_schema()\n" +
+                "                              AND typ.typname = 'product') THEN\n" +
+                "    CREATE TYPE PRODUCT AS (name TEXT, photo TEXT, companyid integer, productid integer, price integer, count integer, description TEXT);" +
+                "  END IF;\n" +
+                "END;\n" +
+                "$$\n" +
+                "LANGUAGE plpgsql;");
+
+        statement.execute("CREATE TABLE IF NOT EXISTS tickets (\n" +
+                "    companyid     INTEGER,\n" +
+                "    userid      INTEGER,\n" +
+                "    id integer unique not null default floor(random()*(2147483647)),\n" +
+                "    products Product[]\n" +
+                ");");
     }
 
-    public static void registerCompany(Integer companyID, String password, String serverAddress) throws SQLException {
-        DataBase.statement.get(1).execute("INSERT INTO companies (\n" +
+    public static void registerCompany(Integer companyID, String password) throws SQLException {
+        DataBase.statement.execute("INSERT INTO companies (\n" +
                 "                          companyID,\n" +
-                "                          password,\n" +
-                "                          serverAddress\n" +
+                "                          password\n" +
                 "                      )\n" +
                 "                      VALUES (\n" +
                 "                          '" + companyID + "',\n" +
-                "                          '" + password + "',\n" +
-                "                          '" + serverAddress + "'\n" +
+                "                          '" + password + "'\n" +
                 "                      );\n");
         addCompany(companyID);
     }
 
     public static void replaceProduct(Integer companyID, Product product) throws SQLException {
-        statement.get(0).execute("INSERT INTO [" + companyID + "] (\n" +
+        statement.execute("INSERT INTO \"" + companyID + "\" (\n" +
                 "                    productid,\n" +
                 "                    photo,\n" +
                 "                    name,\n" +
@@ -56,16 +80,20 @@ public class DataBase {
                 "                    " + product.getCount() +",\n" +
                 "                    '" + product.getDescription() + "',\n" +
                 "                    " + product.getPrice() + "\n" +
-                "                );");
+                "                ) ON CONFLICT (productid) DO UPDATE SET photo = excluded.photo," +
+                "name = excluded.name," +
+                "count = excluded.count," +
+                "description = excluded.description," +
+                "price = excluded.price;");
     }
 
     public static void addCompany(Integer companyID) throws SQLException {
-        statement.get(0).execute("CREATE TABLE [" + companyID + "] (\n" +
-                "    productid   INTEGER UNIQUE ON CONFLICT REPLACE,\n" +
-                "    photo       STRING,\n" +
-                "    name        STRING,\n" +
+        statement.execute("CREATE TABLE public.\"" + companyID + "\" (\n" +
+                "    productid   INTEGER UNIQUE,\n" +
+                "    photo       TEXT,\n" +
+                "    name        TEXT,\n" +
                 "    count       INTEGER,\n" +
-                "    description STRING,\n" +
+                "    description TEXT,\n" +
                 "    price       INTEGER NOT NULL\n" +
                 ");\n");
     }
