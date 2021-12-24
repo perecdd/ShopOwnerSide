@@ -132,8 +132,6 @@ public class OrderApiController implements OrderApi {
                 StringBuilder productString = new StringBuilder();
                 productString.append("ARRAY[");
 
-                //PRODUCT AS (name TEXT, photo TEXT, companyid integer, productid integer, price integer, count integer, description TEXT);
-
                 for (Product product : value) {
                     productString.append("('" + product.getName() + "', '" + product.getPhoto() + "', " + product.getCompanyid() + ", " + product.getProductid() + ", " + product.getPrice() + ", " + product.getCount() + ", '" + product.getDescription() + "')::PRODUCT,");
                 }
@@ -141,11 +139,31 @@ public class OrderApiController implements OrderApi {
                 productString.append("]");
 
                 DataBase.statement.execute("INSERT INTO tickets (\n" +
+                        "                          email,\n" +
+                        "                          name,\n" +
+                        "                          surname,\n" +
+                        "                          phone,\n" +
+                        "                          city,\n" +
+                        "                          country,\n" +
+                        "                          street,\n" +
+                        "                          house,\n" +
+                        "                          flat,\n" +
+
                         "                          companyID,\n" +
                         "                          userid,\n" +
                         "                          products\n" +
                         "                      )\n" +
                         "                      VALUES (\n" +
+                        "                          '" + body.getEmail() + "',\n" +
+                        "                          '" + body.getName() + "',\n" +
+                        "                          '" + body.getSurname() + "',\n" +
+                        "                          '" + body.getPhone() + "',\n" +
+                        "                          '" + body.getAddress().getCity() + "',\n" +
+                        "                          '" + body.getAddress().getCountry() + "',\n" +
+                        "                          '" + body.getAddress().getStreet() + "',\n" +
+                        "                          '" + body.getAddress().getHouse() + "',\n" +
+                        "                          '" + body.getAddress().getFlat() + "',\n" +
+
                         "                          '" + key + "',\n" +
                         "                          '" + body.getId() + "',\n" +
                         "                          " + productString.toString() + "\n" +

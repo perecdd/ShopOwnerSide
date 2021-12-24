@@ -15,7 +15,7 @@ public class DataBase {
         StringBuilder url = new StringBuilder();
         url.
                 append("jdbc:postgresql://").  //db type
-                append("postgres:").          //host name
+                append("localhost:").          //host name
                 append("5432/").               //port
                 append("postgres?").             //db name
                 append("user=postgres&").      //login
@@ -47,7 +47,16 @@ public class DataBase {
         statement.execute("CREATE TABLE IF NOT EXISTS tickets (\n" +
                 "    companyid     INTEGER,\n" +
                 "    userid      INTEGER,\n" +
-                "    id integer unique not null default floor(random()*(2147483647)),\n" +
+                "    email   TEXT\n" +
+                "                    NOT NULL,\n" +
+                "    name    TEXT  NOT NULL,\n" +
+                "    surname TEXT  NOT NULL,\n" +
+                "    phone   TEXT,\n" +
+                "    city    TEXT  NOT NULL,\n" +
+                "    country TEXT  NOT NULL,\n" +
+                "    street  TEXT  NOT NULL,\n" +
+                "    house   TEXT  NOT NULL,\n" +
+                "    flat    TEXT  NOT NULL,\n" +
                 "    products Product[]\n" +
                 ");");
     }
