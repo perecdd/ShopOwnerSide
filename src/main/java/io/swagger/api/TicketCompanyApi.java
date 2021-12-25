@@ -38,7 +38,7 @@ public interface TicketCompanyApi {
 
     @Operation(summary = "", description = "", tags={  })
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = InlineResponse2001.class))),
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = InlineResponse2001.class)))),
 
             @ApiResponse(responseCode = "400", description = "Bad Request") })
     @RequestMapping(value = "/ticketCompany",

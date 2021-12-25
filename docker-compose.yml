@@ -1,21 +1,19 @@
 services:
   app:
-    image:
-      ubuntu:22.04
+    container_name: shopownerside
     build:
       context: . .
       dockerfile: ./Dockerfile
-    command:
-      java -jar ./swagger-spring-1.0.0.jar
     ports:
       - "15676:15676"
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - /usr/src/mymaven
     networks:
       - postgres-compose-network
+      - shared-network
+    volumes:
+      - /volumes/sos
 
   postgres:
     networks:
@@ -35,5 +33,7 @@ services:
       retries: 5
       start_period: 10s
 networks:
+  shared-network:
+    external: true
   postgres-compose-network:
     driver: bridge

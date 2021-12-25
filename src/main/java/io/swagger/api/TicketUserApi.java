@@ -5,6 +5,7 @@
  */
 package io.swagger.api;
 
+import io.swagger.model.InlineResponse2001;
 import io.swagger.model.InlineResponse2002;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,13 +39,13 @@ public interface TicketUserApi {
 
     @Operation(summary = "", description = "", tags={  })
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = InlineResponse2002.class))),
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = InlineResponse2002.class)))),
 
             @ApiResponse(responseCode = "400", description = "Bad Request") })
     @RequestMapping(value = "/ticketUser",
             produces = { "application/json" },
             method = RequestMethod.GET)
-    ResponseEntity<InlineResponse2002> ticketUserGet(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password);
+    ResponseEntity<List<InlineResponse2002>> ticketUserGet(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password);
 
 
     @Operation(summary = "Cancel order", description = "", tags={  })

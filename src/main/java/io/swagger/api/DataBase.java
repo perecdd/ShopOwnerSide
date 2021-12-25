@@ -1,9 +1,9 @@
 package io.swagger.api;
 
 import io.swagger.model.Product;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.sql.*;
-import java.util.ArrayList;
 
 public class DataBase {
     public static Connection connection;
@@ -15,7 +15,7 @@ public class DataBase {
         StringBuilder url = new StringBuilder();
         url.
                 append("jdbc:postgresql://").  //db type
-                append("localhost:").          //host name
+                append("postgres:").          //host name
                 append("5432/").               //port
                 append("postgres?").             //db name
                 append("user=postgres&").      //login

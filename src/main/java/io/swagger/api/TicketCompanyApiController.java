@@ -126,9 +126,8 @@ public class TicketCompanyApiController implements TicketCompanyApi {
         try {
             DataBase.statement.execute("SELECT * FROM companies WHERE companyid = " + companyid + " AND password = '" + password + "';");
             ResultSet resultSet = DataBase.statement.getResultSet();
-            if(resultSet.next()){
+            if(resultSet.next() && !resultSet.getString("status").equals("canceled")){
                 DataBase.statement.execute("UPDATE tickets SET status = '"+status+"' WHERE companyid = " + companyid + " AND id = " + ticket + ";");
-
             }
             else{
                 return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);

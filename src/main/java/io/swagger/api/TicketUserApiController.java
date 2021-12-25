@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -29,6 +31,7 @@ import javax.validation.constraints.*;
 import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
 
@@ -48,23 +51,35 @@ public class TicketUserApiController implements TicketUserApi {
         this.request = request;
     }
 
-    public ResponseEntity<InlineResponse2002> ticketUserGet(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password) {
+    public ResponseEntity<List<InlineResponse2002>> ticketUserGet(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password) {
         String accept = request.getHeader("Accept");
-        if (accept != null && accept.contains("application/json")) {
-            try {
-                return new ResponseEntity<InlineResponse2002>(objectMapper.readValue("{\n  \"id\" : 0,\n  \"status\" : \"status\"\n}", InlineResponse2002.class), HttpStatus.NOT_IMPLEMENTED);
-            } catch (IOException e) {
-                log.error("Couldn't serialize response for content type application/json", e);
-                return new ResponseEntity<InlineResponse2002>(HttpStatus.INTERNAL_SERVER_ERROR);
+        try {
+            DataBase.statement.execute("SELECT * FROM tickets WHERE email = '" + email + "' AND password = '" + password + "';");
+            ResultSet resultSet = DataBase.statement.getResultSet();
+            JSONArray result = new JSONArray();
+            while(resultSet.next()){
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("id", resultSet.getInt("id"));
+                jsonObject.put("status", resultSet.getString("status"));
+                result.add(jsonObject);
             }
+            return new ResponseEntity<List<InlineResponse2002>>(objectMapper.readValue(result.toString(), List.class), HttpStatus.OK);
         }
-
-        return new ResponseEntity<InlineResponse2002>(HttpStatus.NOT_IMPLEMENTED);
+        catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<List<InlineResponse2002>>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     public ResponseEntity<Void> ticketUserPost(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="ticket", required=true) Integer ticket) {
         String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+        try {
+            DataBase.statement.execute("UPDATE tickets SET status = 'canceled' WHERE password = '"+password+"' AND email = '" + email + "' AND id = " + ticket + ";");
+            return new ResponseEntity<Void>(HttpStatus.OK);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
+        }
     }
-
 }

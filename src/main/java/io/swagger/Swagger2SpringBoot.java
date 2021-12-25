@@ -29,8 +29,9 @@ public class Swagger2SpringBoot implements CommandLineRunner {
     }
 
     public static void main(String[] args) throws Exception {
+        SpringApplication application = new SpringApplication(Swagger2SpringBoot.class);
+        application.run(args);
         new DataBase();
-        new SpringApplication(Swagger2SpringBoot.class).run(args);
     }
 
     @Configuration
