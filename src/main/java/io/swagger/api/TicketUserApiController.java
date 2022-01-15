@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.postgresql.jdbc.PgArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -61,6 +62,30 @@ public class TicketUserApiController implements TicketUserApi {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("id", resultSet.getInt("id"));
                 jsonObject.put("status", resultSet.getString("status"));
+
+                JSONArray jsonArray = new JSONArray();
+                PgArray sqlProducts = (PgArray) resultSet.getArray("products");
+                ResultSet rs = null;
+                if(sqlProducts != null) rs = sqlProducts.getResultSet();
+                for(int i = 0; sqlProducts != null && rs.next(); i++){
+                    StringBuilder sb = new StringBuilder(rs.getString(2));
+                    sb.delete(0, 1);
+                    sb.delete(sb.length() - 1, sb.length());
+
+                    String[] objs = sb.toString().split(",");
+
+                    JSONObject JO = new JSONObject();
+                    JO.put("name", objs[0]);
+                    JO.put("Photo", objs[1]);
+                    JO.put("companyid", Integer.parseInt(objs[2]));
+                    JO.put("productid", Integer.parseInt(objs[3]));
+                    JO.put("price", Integer.parseInt(objs[4]));
+                    JO.put("count", Integer.parseInt(objs[5]));
+                    JO.put("description", objs[6]);
+                    jsonArray.add(JO);
+                }
+                jsonObject.put("products", jsonArray);
+
                 result.add(jsonObject);
             }
             return new ResponseEntity<List<InlineResponse2002>>(objectMapper.readValue(result.toString(), List.class), HttpStatus.OK);
@@ -74,7 +99,7 @@ public class TicketUserApiController implements TicketUserApi {
     public ResponseEntity<Void> ticketUserPost(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="ticket", required=true) Integer ticket) {
         String accept = request.getHeader("Accept");
         try {
-            DataBase.statement.execute("UPDATE tickets SET status = 'canceled' WHERE password = '"+password+"' AND email = '" + email + "' AND id = " + ticket + ";");
+            DataBase.statement.execute("UPDATE tickets SET status = 'canceled' WHERE password = '"+password+"' AND email = '" + email + "' AND id = " + ticket + " AND status != 'success';");
             return new ResponseEntity<Void>(HttpStatus.OK);
         }
         catch (Exception e){

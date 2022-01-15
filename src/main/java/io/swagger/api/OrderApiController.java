@@ -114,15 +114,18 @@ public class OrderApiController implements OrderApi {
 
         try {
             List<Product> productList = body.getBasket();
-            Map<Integer, List<Product>> sortedProducts = new HashMap<>();
+            Map<Integer, List<Product>> sortedProducts = new TreeMap<>();
 
             var iter = productList.listIterator();
             while (iter.hasNext()) {
                 Product product = iter.next();
-                if (!sortedProducts.containsKey(product.getCompanyid())) {
+                if (!sortedProducts.containsKey(product.getCompanyid().intValue())) {
                     sortedProducts.put(product.getCompanyid().intValue(), new ArrayList<>());
+                    sortedProducts.get(product.getCompanyid().intValue()).add(product);
                 }
-                sortedProducts.get(product.getCompanyid().intValue()).add(product);
+                else {
+                    sortedProducts.get(product.getCompanyid().intValue()).add(product);
+                }
             }
 
             for (Map.Entry<Integer, List<Product>> entry : sortedProducts.entrySet()) {

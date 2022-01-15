@@ -1,6 +1,7 @@
 package io.swagger.api;
 
 import io.swagger.model.Product;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.sql.*;
@@ -15,17 +16,26 @@ public class DataBase {
         StringBuilder url = new StringBuilder();
         url.
                 append("jdbc:postgresql://").  //db type
-                append("postgres:").          //host name
+                append("localhost:").          //host name
                 append("5432/").               //port
                 append("postgres?").             //db name
                 append("user=postgres&").      //login
                 append("password=postgres");     //password
 
+        // TODO /*        url.
+        //                append("jdbc:postgresql://").  //db type
+        //                append("postgres:").          //host name
+        //                append("5432/").               //port
+        //                append("postgres?").             //db name
+        //                append("user=postgres&").      //login
+        //                append("password=postgres");     //password*/
+
         connection = DriverManager.getConnection(url.toString());
         statement = connection.createStatement();
 
         statement.execute("CREATE TABLE IF NOT EXISTS companies (\n" +
-                "    companyid     INTEGER,\n" +
+                "    companyid     SERIAL,\n" +
+                "    email     TEXT UNIQUE,\n" +
                 "    password      TEXT\n" +
                 ");");
 
@@ -63,19 +73,27 @@ public class DataBase {
                 ");");
     }
 
-    public static void registerCompany(Integer companyID, String password) throws SQLException {
+    public static void registerCompany(String password, String email) throws SQLException {
         DataBase.statement.execute("INSERT INTO companies (\n" +
-                "                          companyID,\n" +
+                "                          email,\n" +
                 "                          password\n" +
                 "                      )\n" +
                 "                      VALUES (\n" +
-                "                          '" + companyID + "',\n" +
+                "                          '" + email + "',\n" +
                 "                          '" + password + "'\n" +
                 "                      );\n");
-        addCompany(companyID);
+        DataBase.statement.execute("SELECT * FROM companies WHERE email = '"+email+"'");
+        ResultSet resultSet = DataBase.statement.getResultSet();
+        resultSet.next();
+        addCompany(resultSet.getInt("companyid"));
     }
 
-    public static void replaceProduct(Integer companyID, Product product) throws SQLException {
+    public static void replaceProduct(String email, Product product) throws SQLException {
+        statement.execute("SELECT * FROM companies WHERE email = '"+email+"'");
+        ResultSet resultSet = statement.getResultSet();
+        resultSet.next();
+        Integer companyID = resultSet.getInt("companyid");
+
         statement.execute("INSERT INTO \"" + companyID + "\" (\n" +
                 "                    productid,\n" +
                 "                    photo,\n" +

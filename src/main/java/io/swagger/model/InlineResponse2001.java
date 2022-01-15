@@ -32,6 +32,9 @@ public class InlineResponse2001   {
     @JsonProperty("email")
     private String email = null;
 
+    @JsonProperty("status")
+    private String status = null;
+
     @JsonProperty("id")
     private Integer id = null;
 
@@ -44,6 +47,26 @@ public class InlineResponse2001   {
 
     public InlineResponse2001 name(String name) {
         this.name = name;
+        return this;
+    }
+
+    /**
+     * Get status
+     * @return status
+     **/
+    @Schema(required = true, description = "")
+    @NotNull
+
+    @Size(min=1)   public String getStatus() {
+        return name;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public InlineResponse2001 status(String status) {
+        this.status = status;
         return this;
     }
 
@@ -204,12 +227,13 @@ public class InlineResponse2001   {
                 Objects.equals(this.email, inlineResponse2001.email) &&
                 Objects.equals(this.id, inlineResponse2001.id) &&
                 Objects.equals(this.products, inlineResponse2001.products) &&
-                Objects.equals(this.address, inlineResponse2001.address);
+                Objects.equals(this.address, inlineResponse2001.address) &&
+                Objects.equals(this.status, inlineResponse2001.status);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, surname, phone, email, id, products, address);
+        return Objects.hash(name, surname, phone, email, id, products, address, status);
     }
 
     @Override
@@ -224,6 +248,7 @@ public class InlineResponse2001   {
         sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("    products: ").append(toIndentedString(products)).append("\n");
         sb.append("    address: ").append(toIndentedString(address)).append("\n");
+        sb.append("    status: ").append(toIndentedString(status)).append("\n");
         sb.append("}");
         return sb.toString();
     }

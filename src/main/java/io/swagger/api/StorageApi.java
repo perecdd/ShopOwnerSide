@@ -47,6 +47,24 @@ public interface StorageApi {
         method = RequestMethod.GET)
     ResponseEntity<InlineResponse200> getCompany(@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="CompanyID", required=false) Integer companyID, @Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="name", required=false) String name, @Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="minPrice", required=false) Integer minPrice, @Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="maxPrice", required=false) Integer maxPrice, @Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="count", required=false) Integer count, @Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="productID", required=false) Integer productID);
 
+    @Operation(summary = "Your GET endpoint", description = "Get products by user request", tags={  })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = InlineResponse200.class))),
+
+            @ApiResponse(responseCode = "400", description = "Bad Request") })
+    @RequestMapping(value = "/storageCompany",
+            produces = { "application/json" },
+            method = RequestMethod.GET)
+    ResponseEntity<InlineResponse200> getForCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email" ,schema=@Schema()) @RequestHeader(value="companyEmail", required=false) String companyEmail);
+
+    @Operation(summary = "", description = "Make storage for company", tags={  })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+
+            @ApiResponse(responseCode = "400", description = "Bad Request") })
+    @RequestMapping(value = "/checkStorage",
+            method = RequestMethod.GET)
+    ResponseEntity<Void> checkCompany(@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email);
 
     @Operation(summary = "", description = "Make storage for company", tags={  })
     @ApiResponses(value = { 
@@ -55,7 +73,7 @@ public interface StorageApi {
         @ApiResponse(responseCode = "400", description = "Bad Request") })
     @RequestMapping(value = "/storage",
         method = RequestMethod.POST)
-    ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "CompanyID" ,required=true,schema=@Schema()) @RequestHeader(value="CompanyID", required=true) Integer companyID, @Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password);
+    ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email);
 
 
     @Operation(summary = "", description = "Update product information/count", tags={  })
@@ -68,7 +86,7 @@ public interface StorageApi {
     @RequestMapping(value = "/storage",
         consumes = { "application/json" }, 
         method = RequestMethod.PUT)
-    ResponseEntity<Void> putCompany(@Parameter(in = ParameterIn.HEADER, description = "CompanyID" ,required=true,schema=@Schema()) @RequestHeader(value="CompanyID", required=true) Integer companyID, @Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.DEFAULT, description = "", schema=@Schema()) @Valid @RequestBody StorageBody body);
+    ResponseEntity<Void> putCompany(@Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.DEFAULT, description = "", schema=@Schema()) @Valid @RequestBody StorageBody body);
 
 }
 

@@ -82,6 +82,7 @@ public class TicketCompanyApiController implements TicketCompanyApi {
                     result.put("name", rs.getString("name"));
                     result.put("surname", rs.getString("surname"));
                     result.put("phone", rs.getString("phone"));
+                    result.put("status", rs.getString("status"));
                     result.put("address", address);
 
                     PgArray sqlProducts = (PgArray) rs.getArray("products");
@@ -126,11 +127,14 @@ public class TicketCompanyApiController implements TicketCompanyApi {
         try {
             DataBase.statement.execute("SELECT * FROM companies WHERE companyid = " + companyid + " AND password = '" + password + "';");
             ResultSet resultSet = DataBase.statement.getResultSet();
-            if(resultSet.next() && !resultSet.getString("status").equals("canceled")){
-                DataBase.statement.execute("UPDATE tickets SET status = '"+status+"' WHERE companyid = " + companyid + " AND id = " + ticket + ";");
-            }
-            else{
-                return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
+            if(resultSet.next()) { // if company exist
+                DataBase.statement.execute("SELECT * FROM tickets WHERE companyid = " + companyid + ";");
+                ResultSet resultSet1 = DataBase.statement.getResultSet();
+                if (resultSet1.next()) {
+                    DataBase.statement.execute("UPDATE tickets SET status = '" + status + "' WHERE companyid = " + companyid + " AND id = " + ticket + " AND status != 'canceled' AND status != 'success';");
+                } else {
+                    return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
+                }
             }
         }
         catch (Exception e){

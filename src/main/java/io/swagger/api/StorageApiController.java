@@ -41,13 +41,12 @@ public class StorageApiController implements StorageApi {
 
     public ResponseEntity<InlineResponse200> getCompany(@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="CompanyID", required=false) Integer companyID,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="name", required=false) String name,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="minPrice", required=false) Integer minPrice,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="maxPrice", required=false) Integer maxPrice,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="count", required=false) Integer count,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="productID", required=false) Integer productID) {
         String accept = request.getHeader("Accept");
+        System.out.println("getProducts");
         if (accept != null && accept.contains("application/json")) {
             try {
                 StringBuilder sb = new StringBuilder();
 
-                sb.append("SELECT table_name FROM information_schema.tables WHERE table_schema NOT IN ('information_schema','pg_catalog')");
-                if(companyID != null) sb.append(" AND table_name = \"" + companyID + "\"");
-                sb.append(";");
+                sb.append("SELECT table_name FROM information_schema.tables WHERE table_schema NOT IN ('information_schema','pg_catalog');");
 
                 DataBase.statement.execute(sb.toString());
                 ResultSet rs = DataBase.statement.getResultSet();
@@ -58,8 +57,15 @@ public class StorageApiController implements StorageApi {
                 List<Integer> companyIDs = new LinkedList<>();
 
                 while(rs.next()) {
-                    if(!rs.getString("table_name").equals("companies") && !rs.getString("table_name").equals("tickets"))
-                        companyIDs.add(rs.getInt("table_name"));
+                    if(!rs.getString("table_name").equals("companies")
+                            && !rs.getString("table_name").equals("tickets")
+                            && !rs.getString("table_name").equals("users")
+                    ) {
+                        Integer table_name = rs.getInt("table_name");
+                        if((companyID != null && table_name == companyID) || companyID == null) {
+                            companyIDs.add(table_name);
+                        }
+                    }
                 }
 
                 var iter = companyIDs.listIterator();
@@ -105,14 +111,57 @@ public class StorageApiController implements StorageApi {
         return new ResponseEntity<InlineResponse200>(HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "CompanyID" ,required=true,schema=@Schema()) @RequestHeader(value="CompanyID", required=true) Integer companyID,@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password) {
+    public ResponseEntity<InlineResponse200> getForCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email" ,schema=@Schema()) @RequestHeader(value="companyEmail", required=true) String companyEmail) {
+        String accept = request.getHeader("Accept");
+        System.out.println("getProducts");
+        if (accept != null && accept.contains("application/json")) {
+            try {
+                DataBase.statement.execute("SELECT * FROM companies WHERE email = '" + companyEmail + "'");
+                ResultSet rs = DataBase.statement.getResultSet();
+                rs.next();
+
+                Integer table_name = rs.getInt("companyid");
+                JSONObject result = new JSONObject();
+                JSONArray products = new JSONArray();
+
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append("SELECT * FROM \"" + table_name + "\";");
+
+                DataBase.statement.execute(stringBuilder.toString());
+                ResultSet resultSet = DataBase.statement.getResultSet();
+
+                while(resultSet.next()) {
+                    JSONObject product = new JSONObject();
+                    product.put("name", resultSet.getString("name"));
+                    product.put("count", resultSet.getString("count"));
+                    product.put("description", resultSet.getString("description"));
+                    product.put("price", resultSet.getString("price"));
+                    product.put("productid", resultSet.getString("productid"));
+                    product.put("companyid", table_name);
+                    product.put("Photo", resultSet.getString("Photo"));
+                    products.add(product);
+                }
+
+                result.put("products", products);
+
+                return new ResponseEntity<InlineResponse200>(objectMapper.readValue(result.toString(), InlineResponse200.class), HttpStatus.OK);
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error("Couldn't serialize response for content type application/json", e);
+                return new ResponseEntity<InlineResponse200>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+        return new ResponseEntity<InlineResponse200>(HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email) {
         String accept = request.getHeader("Accept");
         try {
-            DataBase.statement.execute("SELECT * FROM companies WHERE companyid = " + companyID + ";");
+            DataBase.statement.execute("SELECT * FROM companies WHERE email = '" + email + "';");
             ResultSet rs = DataBase.statement.getResultSet();
 
             if(!rs.next()){
-                DataBase.registerCompany(companyID, password);
+                DataBase.registerCompany(password, email);
                 return new ResponseEntity<Void>(HttpStatus.CREATED);
             }
             else{
@@ -125,17 +174,17 @@ public class StorageApiController implements StorageApi {
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<Void> putCompany(@Parameter(in = ParameterIn.HEADER, description = "CompanyID" ,required=true,schema=@Schema()) @RequestHeader(value="CompanyID", required=true) Integer companyID,@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password,@Parameter(in = ParameterIn.DEFAULT, description = "", schema=@Schema()) @Valid @RequestBody StorageBody body) {
+    public ResponseEntity<Void> putCompany(@Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email,@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password,@Parameter(in = ParameterIn.DEFAULT, description = "", schema=@Schema()) @Valid @RequestBody StorageBody body) {
         String accept = request.getHeader("Accept");
 
         try {
-            DataBase.statement.execute("SELECT * FROM companies WHERE companyid = " + companyID + ";");
+            DataBase.statement.execute("SELECT * FROM companies WHERE email = '" + email + "';");
             ResultSet rs = DataBase.statement.getResultSet();
 
             if (rs.next() && rs.getString("password").equals(password)) {
                 List<Product> productList = body.getProducts();
                 for(Product product : productList){
-                    DataBase.replaceProduct(companyID, product);
+                    DataBase.replaceProduct(email, product);
                 }
                 return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
             }
@@ -149,4 +198,22 @@ public class StorageApiController implements StorageApi {
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
     }
 
+    public ResponseEntity<Void> checkCompany(@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email){
+        String accept = request.getHeader("Accept");
+        try{
+            DataBase.statement.execute("SELECT * FROM companies WHERE email = '" + email + "' AND password = '" + password + "';");
+            ResultSet rs = DataBase.statement.getResultSet();
+
+            if(rs.next()){
+                return new ResponseEntity<Void>(HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
+        }
+    }
 }

@@ -27,6 +27,25 @@ public class InlineResponse2002   {
     @Valid
     private String status = null;
 
+    @JsonProperty("products")
+    @Valid
+    private List<Product> products = null;
+
+    /**
+     * Get products
+     * @return products
+     **/
+    @Schema(required = true, description = "")
+    @NotNull
+    @Valid
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
+    }
+
     /**
      * Get id
      * @return id
@@ -66,12 +85,13 @@ public class InlineResponse2002   {
         }
         InlineResponse2002 inlineResponse2002 = (InlineResponse2002) o;
         return Objects.equals(this.id, inlineResponse2002.id) &&
-                Objects.equals(this.status, inlineResponse2002.status);
+                Objects.equals(this.status, inlineResponse2002.status) &&
+                Objects.equals(this.products, inlineResponse2002.products);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, status);
+        return Objects.hash(id, status, products);
     }
 
     @Override
@@ -80,6 +100,7 @@ public class InlineResponse2002   {
         sb.append("class InlineResponse2002 {\n");
         sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("    status: ").append(toIndentedString(status)).append("\n");
+        sb.append("    products: ").append(toIndentedString(products)).append("\n");
         sb.append("}");
         return sb.toString();
     }
