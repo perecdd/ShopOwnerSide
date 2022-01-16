@@ -4,6 +4,7 @@ import io.swagger.model.Product;
 import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.math.BigDecimal;
 import java.sql.*;
 
 public class DataBase {
@@ -118,12 +119,34 @@ public class DataBase {
 
     public static void addCompany(Integer companyID) throws SQLException {
         statement.execute("CREATE TABLE public.\"" + companyID + "\" (\n" +
-                "    productid   INTEGER UNIQUE,\n" +
+                "    productid   SERIAL UNIQUE,\n" +
                 "    photo       TEXT,\n" +
                 "    name        TEXT,\n" +
                 "    count       INTEGER,\n" +
                 "    description TEXT,\n" +
                 "    price       INTEGER NOT NULL\n" +
                 ");\n");
+
+        Product product = new Product();
+        product.setName("Hello world!");
+        product.setDescription("Hello world!");
+        product.setCount(BigDecimal.valueOf(0));
+        product.setPrice(BigDecimal.valueOf(0));
+        product.setPhoto("Use link there");
+
+        statement.execute("INSERT INTO \"" + companyID + "\" (\n" +
+                "                    photo,\n" +
+                "                    name,\n" +
+                "                    count,\n" +
+                "                    description,\n" +
+                "                    price\n" +
+                "                )\n" +
+                "                VALUES (\n" +
+                "                    '" + product.getPhoto() + "',\n" +
+                "                    '" + product.getName() + "',\n" +
+                "                    " + product.getCount() +",\n" +
+                "                    '" + product.getDescription() + "',\n" +
+                "                    " + product.getPrice() + "\n" +
+                "                );");
     }
 }

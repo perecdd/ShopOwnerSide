@@ -53,13 +53,15 @@ public class TicketCompanyApiController implements TicketCompanyApi {
         this.request = request;
     }
 
-    public ResponseEntity<List<InlineResponse2001>> getTicket(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="companyid", required=true) String companyid,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password) {
+    public ResponseEntity<List<InlineResponse2001>> getTicket(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password) {
         String accept = request.getHeader("Accept");
 
         try {
-            DataBase.statement.execute("SELECT * FROM companies WHERE companyid = " + companyid + " AND password = '" + password + "';");
+            DataBase.statement.execute("SELECT * FROM companies WHERE email = '" + email + "' AND password = '" + password + "';");
             ResultSet resultSet = DataBase.statement.getResultSet();
+
             if(resultSet.next()) {
+                Integer companyid = resultSet.getInt("companyid");
                 DataBase.statement.execute("SELECT * FROM tickets WHERE companyid = " + companyid + ";");
                 ResultSet rs = DataBase.statement.getResultSet();
 
@@ -105,9 +107,8 @@ public class TicketCompanyApiController implements TicketCompanyApi {
                         jsonArray.add(jsonObject);
 
                         result.put("products", jsonArray);
-
-                        AllTickets.add(result);
                     }
+                    AllTickets.add(result);
                 }
 
                 return new ResponseEntity<List<InlineResponse2001>>(objectMapper.readValue(AllTickets.toString(), List.class), HttpStatus.OK);
@@ -122,12 +123,14 @@ public class TicketCompanyApiController implements TicketCompanyApi {
         }
     }
 
-    public ResponseEntity<Void> ticketCompanyPost(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="companyid", required=true) String companyid,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="status", required=true) String status,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="ticket", required=true) Integer ticket) {
+    public ResponseEntity<Void> ticketCompanyPost(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="status", required=true) String status,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="ticket", required=true) Integer ticket) {
         String accept = request.getHeader("Accept");
         try {
-            DataBase.statement.execute("SELECT * FROM companies WHERE companyid = " + companyid + " AND password = '" + password + "';");
+            DataBase.statement.execute("SELECT * FROM companies WHERE email = '" + email + "' AND password = '" + password + "';");
             ResultSet resultSet = DataBase.statement.getResultSet();
+
             if(resultSet.next()) { // if company exist
+                Integer companyid = resultSet.getInt("companyid");
                 DataBase.statement.execute("SELECT * FROM tickets WHERE companyid = " + companyid + ";");
                 ResultSet resultSet1 = DataBase.statement.getResultSet();
                 if (resultSet1.next()) {
