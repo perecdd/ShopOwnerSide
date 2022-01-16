@@ -6,6 +6,7 @@
 package io.swagger.api;
 
 import io.swagger.model.InlineResponse200;
+import io.swagger.model.Rating;
 import io.swagger.model.StorageBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -88,5 +89,22 @@ public interface StorageApi {
         method = RequestMethod.PUT)
     ResponseEntity<Void> putCompany(@Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.DEFAULT, description = "", schema=@Schema()) @Valid @RequestBody StorageBody body);
 
+    @Operation(summary = "", description = "Make storage for company", tags={  })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+
+            @ApiResponse(responseCode = "400", description = "Bad Request") })
+    @RequestMapping(value = "/rate",
+            method = RequestMethod.POST)
+    ResponseEntity<Void> rateCompany(@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "rating" ,required=true,schema=@Schema()) @RequestHeader(value="rating", required=true) Integer rating, @Parameter(in = ParameterIn.HEADER, description = "companyid" ,required=true,schema=@Schema()) @RequestHeader(value="companyid", required=true) Integer companyid);
+
+    @Operation(summary = "", description = "Make storage for company", tags={  })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Rating.class))),
+
+            @ApiResponse(responseCode = "400", description = "Bad Request") })
+    @RequestMapping(value = "/rating",
+            method = RequestMethod.GET)
+    ResponseEntity<Rating> getRating(@Parameter(in = ParameterIn.HEADER, description = "companyid" ,required=false,schema=@Schema()) @RequestHeader(value="companyid", required=false) Integer companyid, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=false,schema=@Schema()) @RequestHeader(value="email", required=false) String email);
 }
 

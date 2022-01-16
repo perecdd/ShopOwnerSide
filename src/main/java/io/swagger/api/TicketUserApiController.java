@@ -75,13 +75,13 @@ public class TicketUserApiController implements TicketUserApi {
                     String[] objs = sb.toString().split(",");
 
                     JSONObject JO = new JSONObject();
-                    JO.put("name", objs[0]);
-                    JO.put("Photo", objs[1]);
+                    JO.put("name", objs[0].replaceAll("\"", ""));
+                    JO.put("Photo", objs[1].replaceAll("\"", ""));
                     JO.put("companyid", Integer.parseInt(objs[2]));
                     JO.put("productid", Integer.parseInt(objs[3]));
                     JO.put("price", Integer.parseInt(objs[4]));
                     JO.put("count", Integer.parseInt(objs[5]));
-                    JO.put("description", objs[6]);
+                    JO.put("description", objs[6].replaceAll("\"", ""));
                     jsonArray.add(JO);
                 }
                 jsonObject.put("products", jsonArray);
@@ -100,6 +100,7 @@ public class TicketUserApiController implements TicketUserApi {
         String accept = request.getHeader("Accept");
         try {
             DataBase.statement.execute("UPDATE tickets SET status = 'canceled' WHERE password = '"+password+"' AND email = '" + email + "' AND id = " + ticket + " AND status != 'success';");
+            DataBase.statement.execute("UPDATE tickets SET status = 'successful' WHERE password = '"+password+"' AND email = '" + email + "' AND id = " + ticket + " AND status = 'success';");
             return new ResponseEntity<Void>(HttpStatus.OK);
         }
         catch (Exception e){

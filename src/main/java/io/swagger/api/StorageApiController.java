@@ -2,6 +2,7 @@ package io.swagger.api;
 
 import io.swagger.model.InlineResponse200;
 import io.swagger.model.Product;
+import io.swagger.model.Rating;
 import io.swagger.model.StorageBody;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -214,6 +215,41 @@ public class StorageApiController implements StorageApi {
         catch (Exception e){
             e.printStackTrace();
             return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public ResponseEntity<Void> rateCompany(@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "rating" ,required=true,schema=@Schema()) @RequestHeader(value="rating", required=true) Integer rating, @Parameter(in = ParameterIn.HEADER, description = "companyid" ,required=true,schema=@Schema()) @RequestHeader(value="companyid", required=true) Integer companyid){
+        String accept = request.getHeader("Accept");
+        if(CFS.loginUser(email, password)){
+            try {
+                DataBase.statement.execute("UPDATE companies SET appraisers = appraisers + 1, rating = rating + " + rating + " WHERE companyid = " + companyid + ";");
+                return new ResponseEntity<Void>(HttpStatus.OK);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
+            }
+        }
+        else{
+            return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    public ResponseEntity<Rating> getRating(@Parameter(in = ParameterIn.HEADER, description = "companyid" ,required=false,schema=@Schema()) @RequestHeader(value="companyid", required=false) Integer companyid, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=false,schema=@Schema()) @RequestHeader(value="email", required=false) String email){
+        String accept = request.getHeader("Accept");
+        try {
+            DataBase.statement.execute("SELECT * FROM companies WHERE companyid = " + companyid + ";");
+            ResultSet resultSet = DataBase.statement.getResultSet();
+            if(resultSet.next()) {
+                return new ResponseEntity<Rating>(objectMapper.readValue("{ \"rating\": " + (new Double(resultSet.getInt("rating")) / new Double(resultSet.getInt("appraisers"))) + " }", Rating.class), HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<Rating>(HttpStatus.BAD_REQUEST);
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<Rating>(HttpStatus.BAD_REQUEST);
         }
     }
 }

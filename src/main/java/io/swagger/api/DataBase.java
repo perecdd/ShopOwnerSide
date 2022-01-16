@@ -37,7 +37,9 @@ public class DataBase {
         statement.execute("CREATE TABLE IF NOT EXISTS companies (\n" +
                 "    companyid     SERIAL,\n" +
                 "    email     TEXT UNIQUE,\n" +
-                "    password      TEXT\n" +
+                "    password      TEXT,\n" +
+                "    rating     INTEGER DEFAULT 0,\n" +
+                "    appraisers      INTEGER DEFAULT 0\n" +
                 ");");
 
         statement.execute("DO\n" +

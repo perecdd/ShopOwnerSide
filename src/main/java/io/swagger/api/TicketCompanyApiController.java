@@ -97,13 +97,13 @@ public class TicketCompanyApiController implements TicketCompanyApi {
                         String[] objs = sb.toString().split(",");
 
                         JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("name", objs[0]);
-                        jsonObject.put("Photo", objs[1]);
+                        jsonObject.put("name", objs[0].replaceAll("\"", ""));
+                        jsonObject.put("Photo", objs[1].replaceAll("\"", ""));
                         jsonObject.put("companyid", Integer.parseInt(objs[2]));
                         jsonObject.put("productid", Integer.parseInt(objs[3]));
                         jsonObject.put("price", Integer.parseInt(objs[4]));
                         jsonObject.put("count", Integer.parseInt(objs[5]));
-                        jsonObject.put("description", objs[6]);
+                        jsonObject.put("description", objs[6].replaceAll("\"", ""));
                         jsonArray.add(jsonObject);
 
                         result.put("products", jsonArray);

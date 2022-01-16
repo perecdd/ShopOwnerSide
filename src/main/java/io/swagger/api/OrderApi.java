@@ -47,6 +47,5 @@ public interface OrderApi {
         consumes = { "application/json" }, 
         method = RequestMethod.POST)
     ResponseEntity<Void> postOrder(@Parameter(in = ParameterIn.DEFAULT, description = "Give all information about user to company", schema=@Schema()) @Valid @RequestBody User body);
-
 }
 
