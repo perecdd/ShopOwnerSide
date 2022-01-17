@@ -35,6 +35,7 @@ public class DataBase {
         statement = connection.createStatement();
 
         statement.execute("CREATE TABLE IF NOT EXISTS companies (\n" +
+                "    name     TEXT,\n" +
                 "    companyid     SERIAL,\n" +
                 "    email     TEXT UNIQUE,\n" +
                 "    password      TEXT,\n" +
@@ -76,14 +77,16 @@ public class DataBase {
                 ");");
     }
 
-    public static void registerCompany(String password, String email) throws SQLException {
+    public static void registerCompany(String password, String email, String name) throws SQLException {
         DataBase.statement.execute("INSERT INTO companies (\n" +
                 "                          email,\n" +
-                "                          password\n" +
+                "                          password,\n" +
+                "                          name\n" +
                 "                      )\n" +
                 "                      VALUES (\n" +
                 "                          '" + email + "',\n" +
-                "                          '" + password + "'\n" +
+                "                          '" + password + "',\n" +
+                "                          '" + name + "'\n" +
                 "                      );\n");
         DataBase.statement.execute("SELECT * FROM companies WHERE email = '"+email+"'");
         ResultSet resultSet = DataBase.statement.getResultSet();

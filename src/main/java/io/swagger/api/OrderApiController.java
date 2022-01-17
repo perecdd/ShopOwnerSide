@@ -109,8 +109,10 @@ public class OrderApiController implements OrderApi {
         this.request = request;
     }
 
-    public ResponseEntity<Void> postOrder(@Parameter(in = ParameterIn.DEFAULT, description = "Give all information about user to company", schema=@Schema()) @Valid @RequestBody User body) {
+    public ResponseEntity<Void> postOrder(@Parameter(in = ParameterIn.DEFAULT, description = "All possible information about the user. The password is used only at the stage of user identification, later it will be deleted.", schema=@Schema()) @Valid @RequestBody User body) {
         String accept = request.getHeader("Accept");
+
+        if(!CFS.loginUser(body.getEmail(), body.getPassword())) return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
 
         try {
             List<Product> productList = body.getBasket();
@@ -179,7 +181,7 @@ public class OrderApiController implements OrderApi {
         }
         catch (Exception e){
             e.printStackTrace();
-            return new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<Void>(HttpStatus.CREATED);
     }

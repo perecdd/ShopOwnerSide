@@ -38,7 +38,7 @@ import java.util.Map;
 @Validated
 public interface StorageApi {
 
-    @Operation(summary = "Your GET endpoint", description = "Get products by user request", tags={  })
+    @Operation(summary = "Receives products on request.", description = "The query scans the tables of all manufacturers for the presence of products with the specified characteristics and outputs them as a result.", tags={  })
     @ApiResponses(value = { 
         @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = InlineResponse200.class))),
         
@@ -46,9 +46,9 @@ public interface StorageApi {
     @RequestMapping(value = "/storage",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<InlineResponse200> getCompany(@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="CompanyID", required=false) Integer companyID, @Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="name", required=false) String name, @Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="minPrice", required=false) Integer minPrice, @Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="maxPrice", required=false) Integer maxPrice, @Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="count", required=false) Integer count, @Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="productID", required=false) Integer productID);
+    ResponseEntity<InlineResponse200> getCompany(@Parameter(in = ParameterIn.HEADER, description = "Company ID in the database." ,schema=@Schema()) @RequestHeader(value="Company ID.", required=false) Integer companyID, @Parameter(in = ParameterIn.HEADER, description = "Product name." ,schema=@Schema()) @RequestHeader(value="name", required=false) String name, @Parameter(in = ParameterIn.HEADER, description = "The minimum price of the product." ,schema=@Schema()) @RequestHeader(value="minPrice", required=false) Integer minPrice, @Parameter(in = ParameterIn.HEADER, description = "The maximum price of the product." ,schema=@Schema()) @RequestHeader(value="maxPrice", required=false) Integer maxPrice, @Parameter(in = ParameterIn.HEADER, description = "Minimum quantity of product in stock." ,schema=@Schema()) @RequestHeader(value="count", required=false) Integer count, @Parameter(in = ParameterIn.HEADER, description = "Product ID in the company's database." ,schema=@Schema()) @RequestHeader(value="productID", required=false) Integer productID);
 
-    @Operation(summary = "Your GET endpoint", description = "Get products by user request", tags={  })
+    @Operation(summary = "Get all the company's products.", description = "The request is necessary for companies, it allows you to get the entire database of products using a single email address (the email address is taken for the convenience of the company).", tags={  })
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = InlineResponse200.class))),
 
@@ -56,28 +56,28 @@ public interface StorageApi {
     @RequestMapping(value = "/storageCompany",
             produces = { "application/json" },
             method = RequestMethod.GET)
-    ResponseEntity<InlineResponse200> getForCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email" ,schema=@Schema()) @RequestHeader(value="companyEmail", required=false) String companyEmail);
+    ResponseEntity<InlineResponse200> getForCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email for identification." ,schema=@Schema()) @RequestHeader(value="email", required=true) String companyEmail);
 
-    @Operation(summary = "", description = "Make storage for company", tags={  })
+    @Operation(summary = "Checks whether the company exists.", description = "The request is needed for the part of the services dedicated to working with the company. By email address and password, it allows you to check whether such a company exists, or, in other words, whether there is a specified registered company or not.", tags={  })
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
-
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "400", description = "Bad Request") })
     @RequestMapping(value = "/checkStorage",
             method = RequestMethod.GET)
-    ResponseEntity<Void> checkCompany(@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email);
+    ResponseEntity<Void> checkCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email for identification." ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "Company password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password);
 
-    @Operation(summary = "", description = "Make storage for company", tags={  })
+    @Operation(summary = "Registers a company.", description = "A new company is registered in the system, a separate table is created to store the product database and a \"Hello world\" product is added to it.", tags={  })
     @ApiResponses(value = { 
         @ApiResponse(responseCode = "200", description = "OK"),
         
         @ApiResponse(responseCode = "400", description = "Bad Request") })
     @RequestMapping(value = "/storage",
         method = RequestMethod.POST)
-    ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email);
+    ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "The name of the company that users will see." ,required=true,schema=@Schema()) @RequestHeader(value="name", required=true) String name, @Parameter(in = ParameterIn.HEADER, description = "Company password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password);
 
 
-    @Operation(summary = "", description = "Update product information/count", tags={  })
+    @Operation(summary = "Updates the product database.", description = "The request allows you to add non-existing products to the database and change existing products in the database to the specified ones. The replacement takes place by the product ID.", tags={  })
     @ApiResponses(value = { 
         @ApiResponse(responseCode = "200", description = "OK"),
         
@@ -87,24 +87,6 @@ public interface StorageApi {
     @RequestMapping(value = "/storage",
         consumes = { "application/json" }, 
         method = RequestMethod.PUT)
-    ResponseEntity<Void> putCompany(@Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.DEFAULT, description = "", schema=@Schema()) @Valid @RequestBody StorageBody body);
-
-    @Operation(summary = "", description = "Make storage for company", tags={  })
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK"),
-
-            @ApiResponse(responseCode = "400", description = "Bad Request") })
-    @RequestMapping(value = "/rate",
-            method = RequestMethod.POST)
-    ResponseEntity<Void> rateCompany(@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "rating" ,required=true,schema=@Schema()) @RequestHeader(value="rating", required=true) Integer rating, @Parameter(in = ParameterIn.HEADER, description = "companyid" ,required=true,schema=@Schema()) @RequestHeader(value="companyid", required=true) Integer companyid);
-
-    @Operation(summary = "", description = "Make storage for company", tags={  })
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Rating.class))),
-
-            @ApiResponse(responseCode = "400", description = "Bad Request") })
-    @RequestMapping(value = "/rating",
-            method = RequestMethod.GET)
-    ResponseEntity<Rating> getRating(@Parameter(in = ParameterIn.HEADER, description = "companyid" ,required=false,schema=@Schema()) @RequestHeader(value="companyid", required=false) Integer companyid, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=false,schema=@Schema()) @RequestHeader(value="email", required=false) String email);
+    ResponseEntity<Void> putCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email for identification." ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "Company password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password, @Parameter(in = ParameterIn.DEFAULT, description = "An object with an array of products.", schema=@Schema()) @Valid @RequestBody StorageBody body);
 }
 

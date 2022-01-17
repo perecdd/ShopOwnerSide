@@ -19,6 +19,34 @@ import javax.validation.constraints.*;
 
 
 public class Rating  {
+    @JsonProperty("name")
+    @Valid
+    private String name = new String();
+
+    public Rating name(String name) {
+        this.name = name;
+        return this;
+    }
+
+    /**
+     * Get rating
+     * @return rating
+     **/
+    @Schema(required = true, description = "")
+    @NotNull
+    @Valid
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+
+
+
+
     @JsonProperty("rating")
     @Valid
     private Double rating = new Double(0);
@@ -53,19 +81,19 @@ public class Rating  {
             return false;
         }
         Rating object = (Rating) o;
-        return Objects.equals(this.rating, object.rating);
+        return Objects.equals(this.rating, object.rating) && Objects.equals(this.name, object.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(rating);
+        return Objects.hash(rating, name);
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("class Rating {\n");
-
+        sb.append("    name: ").append(toIndentedString(name)).append("\n");
         sb.append("    rating: ").append(toIndentedString(rating)).append("\n");
         sb.append("}");
         return sb.toString();

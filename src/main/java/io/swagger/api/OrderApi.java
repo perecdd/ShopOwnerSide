@@ -36,16 +36,14 @@ import java.util.Map;
 @Validated
 public interface OrderApi {
 
-    @Operation(summary = "", description = "Order products", tags={  })
+    @Operation(summary = "Ordering goods in the user's name.", description = "Orders all products from the shopping cart in the user's name. The request sends all the necessary information about the user, including the password, but the password will be needed only at the authorization stage and will later be removed from the request.", tags={  })
     @ApiResponses(value = { 
         @ApiResponse(responseCode = "200", description = "OK"),
-        
-        @ApiResponse(responseCode = "400", description = "Bad Request"),
-        
-        @ApiResponse(responseCode = "401", description = "Unauthorized") })
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "400", description = "Bad Request") })
     @RequestMapping(value = "/order",
         consumes = { "application/json" }, 
         method = RequestMethod.POST)
-    ResponseEntity<Void> postOrder(@Parameter(in = ParameterIn.DEFAULT, description = "Give all information about user to company", schema=@Schema()) @Valid @RequestBody User body);
+    ResponseEntity<Void> postOrder(@Parameter(in = ParameterIn.DEFAULT, description = "All possible information about the user. The password is used only at the stage of user identification, later it will be deleted.", schema=@Schema()) @Valid @RequestBody User body);
 }
 

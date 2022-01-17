@@ -40,7 +40,7 @@ public class StorageApiController implements StorageApi {
         this.request = request;
     }
 
-    public ResponseEntity<InlineResponse200> getCompany(@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="CompanyID", required=false) Integer companyID,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="name", required=false) String name,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="minPrice", required=false) Integer minPrice,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="maxPrice", required=false) Integer maxPrice,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="count", required=false) Integer count,@Parameter(in = ParameterIn.HEADER, description = "" ,schema=@Schema()) @RequestHeader(value="productID", required=false) Integer productID) {
+    public ResponseEntity<InlineResponse200> getCompany(@Parameter(in = ParameterIn.HEADER, description = "Company ID in the database." ,schema=@Schema()) @RequestHeader(value="Company ID.", required=false) Integer companyID, @Parameter(in = ParameterIn.HEADER, description = "Product name." ,schema=@Schema()) @RequestHeader(value="name", required=false) String name, @Parameter(in = ParameterIn.HEADER, description = "The minimum price of the product." ,schema=@Schema()) @RequestHeader(value="minPrice", required=false) Integer minPrice, @Parameter(in = ParameterIn.HEADER, description = "The maximum price of the product." ,schema=@Schema()) @RequestHeader(value="maxPrice", required=false) Integer maxPrice, @Parameter(in = ParameterIn.HEADER, description = "Minimum quantity of product in stock." ,schema=@Schema()) @RequestHeader(value="count", required=false) Integer count, @Parameter(in = ParameterIn.HEADER, description = "Product ID in the company's database." ,schema=@Schema()) @RequestHeader(value="productID", required=false) Integer productID) {
         String accept = request.getHeader("Accept");
         System.out.println("getProducts");
         if (accept != null && accept.contains("application/json")) {
@@ -112,7 +112,7 @@ public class StorageApiController implements StorageApi {
         return new ResponseEntity<InlineResponse200>(HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<InlineResponse200> getForCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email" ,schema=@Schema()) @RequestHeader(value="companyEmail", required=true) String companyEmail) {
+    public ResponseEntity<InlineResponse200> getForCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email for identification." ,schema=@Schema()) @RequestHeader(value="email", required=true) String companyEmail) {
         String accept = request.getHeader("Accept");
         System.out.println("getProducts");
         if (accept != null && accept.contains("application/json")) {
@@ -149,20 +149,20 @@ public class StorageApiController implements StorageApi {
             } catch (Exception e) {
                 e.printStackTrace();
                 log.error("Couldn't serialize response for content type application/json", e);
-                return new ResponseEntity<InlineResponse200>(HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<InlineResponse200>(HttpStatus.BAD_REQUEST);
             }
         }
         return new ResponseEntity<InlineResponse200>(HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email) {
+    public ResponseEntity<Void> postCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "The name of the company that users will see." ,required=true,schema=@Schema()) @RequestHeader(value="name", required=true) String name, @Parameter(in = ParameterIn.HEADER, description = "Company password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password) {
         String accept = request.getHeader("Accept");
         try {
             DataBase.statement.execute("SELECT * FROM companies WHERE email = '" + email + "';");
             ResultSet rs = DataBase.statement.getResultSet();
 
             if(!rs.next()){
-                DataBase.registerCompany(password, email);
+                DataBase.registerCompany(password, email, name);
                 return new ResponseEntity<Void>(HttpStatus.CREATED);
             }
             else{
@@ -175,7 +175,7 @@ public class StorageApiController implements StorageApi {
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<Void> putCompany(@Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email,@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password,@Parameter(in = ParameterIn.DEFAULT, description = "", schema=@Schema()) @Valid @RequestBody StorageBody body) {
+    public ResponseEntity<Void> putCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email for identification." ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "Company password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password, @Parameter(in = ParameterIn.DEFAULT, description = "An object with an array of products.", schema=@Schema()) @Valid @RequestBody StorageBody body) {
         String accept = request.getHeader("Accept");
 
         try {
@@ -199,7 +199,7 @@ public class StorageApiController implements StorageApi {
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<Void> checkCompany(@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email){
+    public ResponseEntity<Void> checkCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email for identification." ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "Company password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password){
         String accept = request.getHeader("Accept");
         try{
             DataBase.statement.execute("SELECT * FROM companies WHERE email = '" + email + "' AND password = '" + password + "';");
@@ -209,47 +209,12 @@ public class StorageApiController implements StorageApi {
                 return new ResponseEntity<Void>(HttpStatus.OK);
             }
             else{
-                return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
             }
         }
         catch (Exception e){
             e.printStackTrace();
             return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    public ResponseEntity<Void> rateCompany(@Parameter(in = ParameterIn.HEADER, description = "Password" ,required=true,schema=@Schema()) @RequestHeader(value="Password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "rating" ,required=true,schema=@Schema()) @RequestHeader(value="rating", required=true) Integer rating, @Parameter(in = ParameterIn.HEADER, description = "companyid" ,required=true,schema=@Schema()) @RequestHeader(value="companyid", required=true) Integer companyid){
-        String accept = request.getHeader("Accept");
-        if(CFS.loginUser(email, password)){
-            try {
-                DataBase.statement.execute("UPDATE companies SET appraisers = appraisers + 1, rating = rating + " + rating + " WHERE companyid = " + companyid + ";");
-                return new ResponseEntity<Void>(HttpStatus.OK);
-            }
-            catch (Exception e){
-                e.printStackTrace();
-                return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
-            }
-        }
-        else{
-            return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
-        }
-    }
-
-    public ResponseEntity<Rating> getRating(@Parameter(in = ParameterIn.HEADER, description = "companyid" ,required=false,schema=@Schema()) @RequestHeader(value="companyid", required=false) Integer companyid, @Parameter(in = ParameterIn.HEADER, description = "email" ,required=false,schema=@Schema()) @RequestHeader(value="email", required=false) String email){
-        String accept = request.getHeader("Accept");
-        try {
-            DataBase.statement.execute("SELECT * FROM companies WHERE companyid = " + companyid + ";");
-            ResultSet resultSet = DataBase.statement.getResultSet();
-            if(resultSet.next()) {
-                return new ResponseEntity<Rating>(objectMapper.readValue("{ \"rating\": " + (new Double(resultSet.getInt("rating")) / new Double(resultSet.getInt("appraisers"))) + " }", Rating.class), HttpStatus.OK);
-            }
-            else{
-                return new ResponseEntity<Rating>(HttpStatus.BAD_REQUEST);
-            }
-        }
-        catch (Exception e){
-            e.printStackTrace();
-            return new ResponseEntity<Rating>(HttpStatus.BAD_REQUEST);
         }
     }
 }

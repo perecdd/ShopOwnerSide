@@ -52,7 +52,7 @@ public class TicketUserApiController implements TicketUserApi {
         this.request = request;
     }
 
-    public ResponseEntity<List<InlineResponse2002>> ticketUserGet(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password) {
+    public ResponseEntity<List<InlineResponse2002>> ticketUserGet(@Parameter(in = ParameterIn.HEADER, description = "User's email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "User's password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password) {
         String accept = request.getHeader("Accept");
         try {
             DataBase.statement.execute("SELECT * FROM tickets WHERE email = '" + email + "' AND password = '" + password + "';");
@@ -96,7 +96,7 @@ public class TicketUserApiController implements TicketUserApi {
         }
     }
 
-    public ResponseEntity<Void> ticketUserPost(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="ticket", required=true) Integer ticket) {
+    public ResponseEntity<Void> ticketUserPost(@Parameter(in = ParameterIn.HEADER, description = "User's email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "User's password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "Order ID." ,required=true,schema=@Schema()) @RequestHeader(value="ticket", required=true) Integer ticket) {
         String accept = request.getHeader("Accept");
         try {
             DataBase.statement.execute("UPDATE tickets SET status = 'canceled' WHERE password = '"+password+"' AND email = '" + email + "' AND id = " + ticket + " AND status != 'success';");

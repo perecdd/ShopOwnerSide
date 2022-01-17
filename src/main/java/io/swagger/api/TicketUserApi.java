@@ -37,7 +37,7 @@ import java.util.Map;
 @Validated
 public interface TicketUserApi {
 
-    @Operation(summary = "", description = "", tags={  })
+    @Operation(summary = "Receives all user orders.", description = "The request receives for the user all the orders that he has made.", tags={  })
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = InlineResponse2002.class)))),
 
@@ -45,17 +45,17 @@ public interface TicketUserApi {
     @RequestMapping(value = "/ticketUser",
             produces = { "application/json" },
             method = RequestMethod.GET)
-    ResponseEntity<List<InlineResponse2002>> ticketUserGet(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password);
+    ResponseEntity<List<InlineResponse2002>> ticketUserGet(@Parameter(in = ParameterIn.HEADER, description = "User's email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "User's password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password);
 
 
-    @Operation(summary = "Cancel order", description = "", tags={  })
+    @Operation(summary = "Cancels the user's order.", description = "The request allows the user to set the order status to \"cancel\", thereby canceling it.", tags={  })
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
 
             @ApiResponse(responseCode = "400", description = "Bad Request") })
     @RequestMapping(value = "/ticketUser",
             method = RequestMethod.POST)
-    ResponseEntity<Void> ticketUserPost(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="ticket", required=true) Integer ticket);
+    ResponseEntity<Void> ticketUserPost(@Parameter(in = ParameterIn.HEADER, description = "User's email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "User's password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "Order ID." ,required=true,schema=@Schema()) @RequestHeader(value="ticket", required=true) Integer ticket);
 
 }
 

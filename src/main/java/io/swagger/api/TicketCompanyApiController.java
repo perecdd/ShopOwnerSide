@@ -53,7 +53,7 @@ public class TicketCompanyApiController implements TicketCompanyApi {
         this.request = request;
     }
 
-    public ResponseEntity<List<InlineResponse2001>> getTicket(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password) {
+    public ResponseEntity<List<InlineResponse2001>> getTicket(@Parameter(in = ParameterIn.HEADER, description = "Company email for identification." ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "Company password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password) {
         String accept = request.getHeader("Accept");
 
         try {
@@ -123,7 +123,7 @@ public class TicketCompanyApiController implements TicketCompanyApi {
         }
     }
 
-    public ResponseEntity<Void> ticketCompanyPost(@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="status", required=true) String status,@Parameter(in = ParameterIn.HEADER, description = "" ,required=true,schema=@Schema()) @RequestHeader(value="ticket", required=true) Integer ticket) {
+    public ResponseEntity<Void> ticketCompanyPost(@Parameter(in = ParameterIn.HEADER, description = "Company email for identification." ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "Company password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password, @Parameter(in = ParameterIn.HEADER, description = "New order status." ,required=true,schema=@Schema()) @RequestHeader(value="status", required=true) String status,@Parameter(in = ParameterIn.HEADER, description = "Order ID." ,required=true,schema=@Schema()) @RequestHeader(value="ticket", required=true) Integer ticket) {
         String accept = request.getHeader("Accept");
         try {
             DataBase.statement.execute("SELECT * FROM companies WHERE email = '" + email + "' AND password = '" + password + "';");
