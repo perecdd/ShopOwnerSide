@@ -16,20 +16,12 @@ public class DataBase {
 
         StringBuilder url = new StringBuilder();
         url.
-                append("jdbc:postgresql://").  //db type
-                append("localhost:").          //host name
-                append("5432/").               //port
-                append("postgres?").             //db name
-                append("user=postgres&").      //login
-                append("password=postgres");     //password
-
-        // TODO /*        url.
-        //                append("jdbc:postgresql://").  //db type
-        //                append("postgres:").          //host name
-        //                append("5432/").               //port
-        //                append("postgres?").             //db name
-        //                append("user=postgres&").      //login
-        //                append("password=postgres");     //password*/
+        append("jdbc:postgresql://").  //db type
+        append("postgres:").          //host name
+        append("5432/").               //port
+        append("postgres?").             //db name
+        append("user=postgres&").      //login
+        append("password=postgres");     //password*/
 
         connection = DriverManager.getConnection(url.toString());
         statement = connection.createStatement();

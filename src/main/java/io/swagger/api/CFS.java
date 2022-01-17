@@ -5,7 +5,7 @@ import java.net.URL;
 
 public class CFS {
     public final static Integer port = 3939;
-    public final static String ip = "http://localhost"; // TODO http://cfs
+    public final static String ip = "http://cfs";
     public static HttpURLConnection con;
 
     static boolean loginUser(String email, String password){
