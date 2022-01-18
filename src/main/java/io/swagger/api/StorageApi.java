@@ -88,5 +88,14 @@ public interface StorageApi {
         consumes = { "application/json" }, 
         method = RequestMethod.PUT)
     ResponseEntity<Void> putCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email for identification." ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "Company password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password, @Parameter(in = ParameterIn.DEFAULT, description = "An object with an array of products.", schema=@Schema()) @Valid @RequestBody StorageBody body);
+
+    @Operation(summary = "Allows the company to engage in trade.", description = "Before a company can trade, it is necessary to pay for a position on the Cloud Food Store.", tags={  })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Bad Request") })
+    @RequestMapping(value = "/acceptCompany",
+            method = RequestMethod.POST)
+    ResponseEntity<Void> acceptCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email);
+
 }
 

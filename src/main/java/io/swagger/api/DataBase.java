@@ -32,7 +32,8 @@ public class DataBase {
                 "    email     TEXT UNIQUE,\n" +
                 "    password      TEXT,\n" +
                 "    rating     INTEGER DEFAULT 0,\n" +
-                "    appraisers      INTEGER DEFAULT 0\n" +
+                "    appraisers      INTEGER DEFAULT 0,\n" +
+                "    accepted      INTEGER DEFAULT 0\n" +
                 ");");
 
         statement.execute("DO\n" +

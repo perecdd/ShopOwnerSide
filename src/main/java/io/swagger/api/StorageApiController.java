@@ -202,7 +202,7 @@ public class StorageApiController implements StorageApi {
     public ResponseEntity<Void> checkCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email for identification." ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email, @Parameter(in = ParameterIn.HEADER, description = "Company password" ,required=true,schema=@Schema()) @RequestHeader(value="password", required=true) String password){
         String accept = request.getHeader("Accept");
         try{
-            DataBase.statement.execute("SELECT * FROM companies WHERE email = '" + email + "' AND password = '" + password + "';");
+            DataBase.statement.execute("SELECT * FROM companies WHERE email = '" + email + "' AND password = '" + password + "' AND accepted >= 1;");
             ResultSet rs = DataBase.statement.getResultSet();
 
             if(rs.next()){
@@ -210,6 +210,25 @@ public class StorageApiController implements StorageApi {
             }
             else{
                 return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public ResponseEntity<Void> acceptCompany(@Parameter(in = ParameterIn.HEADER, description = "Company email" ,required=true,schema=@Schema()) @RequestHeader(value="email", required=true) String email){
+        String accept = request.getHeader("Accept");
+        try {
+            DataBase.statement.execute("UPDATE companies SET accepted = 1 WHERE email = '" + email + "';");
+            DataBase.statement.execute("SELECT * FROM companies WHERE accepted = 1 AND email = '" + email + "';");
+            ResultSet rs = DataBase.statement.getResultSet();
+            if (rs.next()){
+                return new ResponseEntity<Void>(HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
             }
         }
         catch (Exception e){
